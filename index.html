@@ -4,8 +4,47 @@
 <head>
     <meta charset="utf-8" />
     <title></title>
+    <link rel="stylesheet" href="shoppingList.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <script src="shoppingList.js"></script>    
 </head>
 <body>
-    loading..
+    <div>
+        <span id="weeklyPlanningNav">Weekly Planning</span> | <span id="mealNav">Meals</span>
+    </div>
+    <hr />
+
+    <div id="DisplayWeeks" class="show">
+        <h1>Weekly Planning</h1>
+        <div id="Week1Meals">
+            <h2>WEEK 1</h2> <button id="Week1Toggle">Toggle</button>
+            <span>Monday</span>
+        </div>
+        <div id="Week2Meals">
+            <h2>WEEK 2</h2> <button id="Week2Toggle">Toggle</button>
+        </div>
+        <div id="Week3Meals">
+            <h2>WEEK 3</h2> <button id="Week3Toggle">Toggle</button>
+        </div>
+        <div id="Week4Meals">
+            <h2>WEEK 4</h2> <button id="Week4Toggle">Toggle</button>
+        </div>
+    </div>
+    <div id="DisplayMeals" class="hide">
+        <h1>Meal List</h1>
+        <div id="mealList">
+            <span class="mealListItem">Sweet Tea</span> <!-- loop this with jquery -->
+        </div>
+        <button id="addMeal">Add Meal</button>
+    </div>
+    <div id="DisplayRecipes" class="hide">
+        <h1>Meal Recipe</h1>
+        <strong>Meal Name:</strong> <span id="selectedMealName"></span>
+        <h2>Ingredients</h2>
+        <div id="ingredientsList">
+
+        </div>
+    </div>
+
 </body>
 </html>

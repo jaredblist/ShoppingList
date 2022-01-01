@@ -6,7 +6,84 @@
     <title></title>
     <link rel="stylesheet" href="shoppingList.css">
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
-    <script src="shoppingList.js"></script>    
+    <script type="module">
+        // Import the functions you need from the SDKs you need
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js";
+        import { getFirestore, collection, getDocs, doc, getDoc } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore.js";
+        // TODO: Add SDKs for Firebase products that you want to use
+        // https://firebase.google.com/docs/web/setup#available-libraries
+
+        // Your web app's Firebase configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyCK_TujHizuO3etGZqzuO2Bpk4Ei4zLF00",
+            authDomain: "jaredshoppinglist.firebaseapp.com",
+            projectId: "jaredshoppinglist",
+            storageBucket: "jaredshoppinglist.appspot.com",
+            messagingSenderId: "86072516707",
+            appId: "1:86072516707:web:d2a9b7a2fd550f79c81856"
+        };
+
+        // Initialize Firebase
+        var firebaseApp = initializeApp(firebaseConfig);
+        var firebaseDb = getFirestore(firebaseApp);
+
+        $(document).ready(function () {
+            async function getAllMeals(db) {
+                const citiesCol = collection(db, 'meals');
+                const citySnapshot = await getDocs(citiesCol);
+                const cityList = citySnapshot.docs.map(doc => doc.data());
+                //console.log(cityList);
+                return cityList;
+            }
+
+            async function getMeal(db, mealName) {
+                const docRef = doc(db, "meals", mealName);
+                const docSnap = await getDoc(docRef);
+
+                if (docSnap.exists()) {
+                    //console.log("Document data:", docSnap.data());
+                    return await docSnap.data();
+                } else {
+                    // doc.data() will be undefined in this case
+                    //console.log("No such document!");
+                    return null;
+                }
+            }
+
+            //var allMeals = getAllMeals(firebaseDb);
+
+            $("#weeklyPlanningNav").click(function () {
+                $("#DisplayWeeks").show();
+                $("#DisplayMeals").hide();
+                $("#DisplayRecipes").hide();
+            });
+
+            $("#mealNav").click(function () {
+                $("#DisplayWeeks").hide();
+                $("#DisplayMeals").show();
+                $("#DisplayRecipes").hide();
+            });
+
+            $(".mealListItem").click(function () {
+                $("#DisplayWeeks").hide();
+                $("#DisplayMeals").hide();
+                $("#DisplayRecipes").show();
+
+                var name = $(this).text();
+                /** Link up to firebase to pull this info, grab it by name **/
+                //Can delete this test instance                
+                getMeal(firebaseDb, name).then((value) => {
+                    console.log(value);
+                    $("#selectedMealName").text(value.name);
+                    $("#ingredientsList").empty();
+                    console.log(value.ingredients);
+                    $.each(value.ingredients, function (i, item) {
+                        $("#ingredientsList").append(item.amount + " " + item.name + "<br />");
+                    });
+                });
+            });
+        });
+    </script>    
 </head>
 <body>
     <div>
@@ -33,7 +110,7 @@
     <div id="DisplayMeals" class="hide">
         <h1>Meal List</h1>
         <div id="mealList">
-            <span class="mealListItem">Sweet Tea</span> <!-- loop this with jquery -->
+            <span class="mealListItem">Eggs</span> <!-- loop this with jquery -->
         </div>
         <button id="addMeal">Add Meal</button>
     </div>

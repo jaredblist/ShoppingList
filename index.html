@@ -3,6 +3,7 @@
 <html lang="en" xmlns="http://www.w3.org/1999/xhtml">
 <head>
     <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,height=device-height,initial-scale=1.0" />
     <title></title>
     <link rel="stylesheet" href="shoppingList.css">
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
@@ -27,6 +28,7 @@
         var firebaseApp = initializeApp(firebaseConfig);
         var firebaseDb = getFirestore(firebaseApp);
         var newMealIngredientCount = 0;
+        var associatedMeal = null;
 
         $(document).ready(function () {
             async function getAllMeals(db) {
@@ -57,6 +59,7 @@
                 $("#DisplayRecipes").hide();
                 $("#DisplayGroceryList").hide();
                 $("#DisplayAddMeal").hide();
+                $("#DisplayAssociateMeal").hide();
             });
 
             $("#mealNav").click(function () {
@@ -65,9 +68,10 @@
                 $("#DisplayRecipes").hide();
                 $("#DisplayGroceryList").hide();
                 $("#DisplayAddMeal").hide();
+                $("#DisplayAssociateMeal").hide();
 
-                getAllMeals(firebaseDb, name).then((value) => {                                     
-                    $("#mealList").empty();                    
+                getAllMeals(firebaseDb, name).then((value) => {
+                    $("#mealList").empty();
                     $.each(value, function (i, item) {
                         $("#mealList").append('<span class="mealListItem">' + item.name + "</span> <br />");
                     });
@@ -80,15 +84,15 @@
                 $("#DisplayRecipes").show();
                 $("#DisplayGroceryList").hide();
                 $("#DisplayAddMeal").hide();
+                $("#DisplayAssociateMeal").hide();
 
                 var name = $(this).text();
                 /** Link up to firebase to pull this info, grab it by name **/
-                //Can delete this test instance                
+                //Can delete this test instance
                 getMeal(firebaseDb, name).then((value) => {
-                    console.log(value);
                     $("#selectedMealName").text(value.name);
                     $("#ingredientsList").empty();
-                    console.log(value.ingredients);
+
                     $.each(value.ingredients, function (i, item) {
                         $("#ingredientsList").append(item.amount + " " + item.name + "<br />");
                     });
@@ -101,6 +105,7 @@
                 $("#DisplayRecipes").hide();
                 $("#DisplayGroceryList").show();
                 $("#DisplayAddMeal").hide();
+                $("#DisplayAssociateMeal").hide();
             });
 
             $("#addMealNav").click(function () {
@@ -109,29 +114,119 @@
                 $("#DisplayRecipes").hide();
                 $("#DisplayGroceryList").hide();
                 $("#DisplayAddMeal").show();
-            });
-        });
-
-        $("#addAdditionalIngredient").click(function () {
-            $("#newIngredientList").append('<div id="newIngredientDiv' + newMealIngredientCount + '" data-rowCount="' + newMealIngredientCount + '"> ' +
-                '<input type="text" id="newIngredientAmount' + newMealIngredientCount + '" name="newIngredientAmount' + newMealIngredientCount + '" placeholder="Amount" required> ' +
-                '<input type="text" id="newIngredientName' + newMealIngredientCount + '" name="newIngredientName' + newMealIngredientCount + '" placeholder="Ingredient Name" required> ' +
-                '<input type="text" id="newIngredientCategory' + newMealIngredientCount + '" name="newIngredientCategory' + newMealIngredientCount + '" placeholder="Category" required> ' +
-                '<button id="newIngredientRemove' + newMealIngredientCount + '">Remove</button>' + 
-                '</div>');
-
-            $("#newIngredientRemove" + newMealIngredientCount).click(function () {
-                var row = $(this).attr('id').substring(19);                
-                $("#newIngredientDiv" + row).remove();
+                $("#DisplayAssociateMeal").hide();
             });
 
-            newMealIngredientCount++;
-        });
 
-        $("#week1Toggle").click(function () {
+            $("#addAdditionalIngredient").click(function () {
+                $("#newIngredientList").append('<div id="newIngredientDiv' + newMealIngredientCount + '" data-rowCount="' + newMealIngredientCount + '"> ' +
+                    '<input type="text" id="newIngredientAmount' + newMealIngredientCount + '" name="newIngredientAmount' + newMealIngredientCount + '" placeholder="Amount" required> ' +
+                    '<input type="text" id="newIngredientName' + newMealIngredientCount + '" name="newIngredientName' + newMealIngredientCount + '" placeholder="Ingredient Name" required> ' +
+                    '<input type="text" id="newIngredientCategory' + newMealIngredientCount + '" name="newIngredientCategory' + newMealIngredientCount + '" placeholder="Category" required> ' +
+                    '<button id="newIngredientRemove' + newMealIngredientCount + '">Remove</button>' +
+                    '</div>');
 
+                $("#newIngredientRemove" + newMealIngredientCount).click(function () {
+                    var row = $(this).attr('id').substring(19);
+                    $("#newIngredientDiv" + row).remove();
+                });
+
+                newMealIngredientCount++;
+            });
+
+            $("#week1Toggle").click(function () {
+                if ($(this).text() === "Expand") {
+                    $("#week1Meals").show();
+                    $(this).text("Close");
+                }
+                else {
+                    $("#week1Meals").hide();
+                    $(this).text("Expand");
+                }
+            });
+
+            $("#week2Toggle").click(function () {
+                if ($(this).text() === "Expand") {
+                    $("#week2Meals").show();
+                    $(this).text("Close");
+                }
+                else {
+                    $("#week2Meals").hide();
+                    $(this).text("Expand");
+                }
+            });
+
+            $("#week3Toggle").click(function () {
+                if ($(this).text() === "Expand") {
+                    $("#week3Meals").show();
+                    $(this).text("Close");
+                }
+                else {
+                    $("#week3Meals").hide();
+                    $(this).text("Expand");
+                }
+            });
+
+            $("#week4Toggle").click(function () {
+                if ($(this).text() === "Expand") {
+                    $("#week4Meals").show();
+                    $(this).text("Close");
+                }
+                else {
+                    $("#week4Meals").hide();
+                    $(this).text("Expand");
+                }
+            });
+
+            $(".addMealToDay").click(function () {
+                associatedMeal = $(this).siblings(".dailyMeal");
+
+                getAllMeals(firebaseDb, name).then((value) => {
+                    $("#searchableMealList").empty();
+                    $.each(value, function (i, item) {
+                        $("#searchableMealList").append('<span class="searchableMealListItem">' + item.name + "</span> <br />");
+                    });
+
+                    $(".searchableMealListItem").click(function () {
+                        $(".searchableMealListItem.active").removeClass("active");
+                        $(this).addClass("active");
+                    });
+                });
+
+                $("#DisplayWeeks").hide();
+                $("#DisplayMeals").hide();
+                $("#DisplayRecipes").hide();
+                $("#DisplayGroceryList").hide();
+                $("#DisplayAddMeal").hide();
+                $("#DisplayAssociateMeal").show();
+            });
+
+            $("#selectMeal").click(function () {
+                var mealItem = $(".searchableMealListItem.active").text();
+                $(".searchableMealListItem.active").removeClass("active");
+
+                $("#DisplayWeeks").show();
+                $("#DisplayMeals").hide();
+                $("#DisplayRecipes").hide();
+                $("#DisplayGroceryList").hide();
+                $("#DisplayAddMeal").hide();
+                $("#DisplayAssociateMeal").hide();
+
+                if (associatedMeal.text() === "") {
+                    associatedMeal.append(mealItem);
+                }
+                else {
+                    associatedMeal.append(", " + mealItem);
+                }
+
+                associatedMeal = null;
+            });
+
+            $(".clearMealsForDay").click(function () {
+                $(this).siblings(".dailyMeal").empty();
+            });
         });
-    </script>    
+    </script>
 </head>
 
 
@@ -146,18 +241,26 @@
 
     <div id="DisplayWeeks" class="show">
         <h1>Weekly Planning</h1>
-        <div id="week1Meals">
-            <div><h2>WEEK 1</h2> <button id="week1Toggle">Toggle</button></div>
-            <span>Monday</span>
+        <div id="week1">
+            <div><h2>WEEK 1</h2> <button id="week1Toggle">Expand</button></div>
+            <div id="week1Meals" class="hide">
+                <div id="week1Monday"><strong>Monday:</strong> <div class="dailyMeal" id="week1MondayMeal"></div> <button class="addMealToDay">Add</button> <button class="clearMealsForDay">Clear</button> </div>
+                <div id="week1Tuesday"><strong>Tuesday:</strong> <div class="dailyMeal" id="week1TuesdayMeal"></div> <button class="addMealToDay">Add</button> <button class="clearMealsForDay">Clear</button> </div>
+                <div id="week1Wednesday"><strong>Wednesday:</strong> <div class="dailyMeal" id="week1WednesdayMeal"></div> <button class="addMealToDay">Add</button> <button class="clearMealsForDay">Clear</button> </div>
+                <div id="week1Thursday"><strong>Thursday:</strong> <div class="dailyMeal" id="week1ThursdayMeal"></div> <button class="addMealToDay">Add</button> <button class="clearMealsForDay">Clear</button> </div>
+                <div id="week1Friday"><strong>Friday:</strong> <div class="dailyMeal" id="week1FridayMeal"></div> <button class="addMealToDay">Add</button> <button class="clearMealsForDay">Clear</button> </div>
+                <div id="week1Saturday"><strong>Saturday:</strong> <div class="dailyMeal" id="week1SaturdayMeal"></div> <button class="addMealToDay">Add</button> <button class="clearMealsForDay">Clear</button> </div>
+                <div id="week1Sunday"><strong>Sunday:</strong> <div class="dailyMeal" id="week1SundayMeal"></div> <button class="addMealToDay">Add</button> <button class="clearMealsForDay">Clear</button> </div>
+            </div>
         </div>
         <div id="week2Meals">
-            <h2>WEEK 2</h2> <button id="week2Toggle">Toggle</button>
+            <h2>WEEK 2</h2> <button id="week2Toggle">Expand</button>
         </div>
         <div id="week3Meals">
-            <h2>WEEK 3</h2> <button id="week3Toggle">Toggle</button>
+            <h2>WEEK 3</h2> <button id="week3Toggle">Expand</button>
         </div>
         <div id="week4Meals">
-            <h2>WEEK 4</h2> <button id="week4Toggle">Toggle</button>
+            <h2>WEEK 4</h2> <button id="week4Toggle">Expand</button>
         </div>
     </div>
     <div id="DisplayGroceryList" class="hide">
@@ -192,11 +295,24 @@
                 <input type="text" id="newIngredientCategory" name="newIngredientCategory" placeholder="Category" required>
             </div>
         </div>
-        <br />       
+        <br />
         <button id="addAdditionalIngredient">Add New Ingredient</button>
         <br />
         <br />
         <button id="addMeal">Add Meal</button>
+    </div>
+    <div id="DisplayAssociateMeal" class="hide">
+        <h1>Select Meal</h1>
+        <strong><label for="searchMealName">Search Meal Name:</label></strong>
+        <input type="text" id="searchMealName" name="searchMealName" required>
+        <br />
+        <br />
+        <strong>Meal List</strong>
+        <div id="searchableMealList">
+
+        </div>
+        <br />
+        <button id="selectMeal">Select Meal</button>
     </div>
 </body>
 </html>

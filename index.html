@@ -10,7 +10,7 @@
     <script type="module">
         // Import the functions you need from the SDKs you need
         import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js";
-        import { getFirestore, collection, getDocs, doc, getDoc } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore.js";
+        import { getFirestore, collection, getDocs, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore.js";
         // TODO: Add SDKs for Firebase products that you want to use
         // https://firebase.google.com/docs/web/setup#available-libraries
 
@@ -53,6 +53,15 @@
                 }
             }
 
+            async function addMeal(db, meal) {                
+                const docRef = await setDoc(doc(db, "meals", meal.name), {
+                    name: meal.name,
+                    ingredients: meal.ingredients
+                });
+
+                return docRef;
+            }
+
             $("#weeklyPlanningNav").click(function () {
                 $("#DisplayWeeks").show();
                 $("#DisplayMeals").hide();
@@ -75,29 +84,32 @@
                     $.each(value, function (i, item) {
                         $("#mealList").append('<span class="mealListItem">' + item.name + "</span> <br />");
                     });
+
+                    addClickToMealListItem();
                 });
             });
 
-            $(".mealListItem").click(function () {
-                $("#DisplayWeeks").hide();
-                $("#DisplayMeals").hide();
-                $("#DisplayRecipes").show();
-                $("#DisplayGroceryList").hide();
-                $("#DisplayAddMeal").hide();
-                $("#DisplayAssociateMeal").hide();
+            function addClickToMealListItem() {
+                $(".mealListItem").click(function () {                    
+                    $("#DisplayWeeks").hide();
+                    $("#DisplayMeals").hide();
+                    $("#DisplayRecipes").show();
+                    $("#DisplayGroceryList").hide();
+                    $("#DisplayAddMeal").hide();
+                    $("#DisplayAssociateMeal").hide();
 
-                var name = $(this).text();
-                /** Link up to firebase to pull this info, grab it by name **/
-                //Can delete this test instance
-                getMeal(firebaseDb, name).then((value) => {
-                    $("#selectedMealName").text(value.name);
-                    $("#ingredientsList").empty();
+                    var name = $(this).text();
+                                        
+                    getMeal(firebaseDb, name).then((value) => {                        
+                        $("#selectedMealName").text(value.name);
+                        $("#ingredientsList").empty();
 
-                    $.each(value.ingredients, function (i, item) {
-                        $("#ingredientsList").append(item.amount + " " + item.name + "<br />");
+                        $.each(value.ingredients, function (i, item) {
+                            $("#ingredientsList").append(item.amount + " " + item.name + "<br />");
+                        });
                     });
                 });
-            });
+            }            
 
             $("#groceryListNav").click(function () {
                 $("#DisplayWeeks").hide();
@@ -119,10 +131,10 @@
 
 
             $("#addAdditionalIngredient").click(function () {
-                $("#newIngredientList").append('<div id="newIngredientDiv' + newMealIngredientCount + '" data-rowCount="' + newMealIngredientCount + '"> ' +
-                    '<input type="text" id="newIngredientAmount' + newMealIngredientCount + '" name="newIngredientAmount' + newMealIngredientCount + '" placeholder="Amount" required> ' +
-                    '<input type="text" id="newIngredientName' + newMealIngredientCount + '" name="newIngredientName' + newMealIngredientCount + '" placeholder="Ingredient Name" required> ' +
-                    '<input type="text" id="newIngredientCategory' + newMealIngredientCount + '" name="newIngredientCategory' + newMealIngredientCount + '" placeholder="Category" required> ' +
+                $("#newIngredientList").append('<div id="newIngredientDiv' + newMealIngredientCount + '" class="newIngredient"> ' +
+                    '<input type="text" id="newIngredientAmount' + newMealIngredientCount + '" class="newIngredientAmount" name="newIngredientAmount' + newMealIngredientCount + '" placeholder="Amount" required> ' +
+                    '<input type="text" id="newIngredientName' + newMealIngredientCount + '" class="newIngredientName" name="newIngredientName' + newMealIngredientCount + '" placeholder="Ingredient Name" required> ' +
+                    '<input type="text" id="newIngredientCategory' + newMealIngredientCount + '" class="newIngredientCategory" name="newIngredientCategory' + newMealIngredientCount + '" placeholder="Category" required> ' +
                     '<button id="newIngredientRemove' + newMealIngredientCount + '">Remove</button>' +
                     '</div>');
 
@@ -132,6 +144,25 @@
                 });
 
                 newMealIngredientCount++;
+            });
+            
+            $("#addNewMeal").click(function () {                
+                var mealJson = {};
+                var mealIngredients = [];
+
+                mealJson.ingredients = mealIngredients;
+                mealJson.name = $("#newMealName").val();
+
+                $.each($(".newIngredient"), function (i, item) {                    
+                    var ingredientJson = {
+                        amount: $(item).children(".newIngredientAmount").val(),
+                        name: $(item).children(".newIngredientName").val(),
+                        category: $(item).children(".newIngredientCategory").val()
+                    };
+                    mealJson.ingredients.push(ingredientJson);
+                });
+
+                addMeal(firebaseDb, mealJson);
             });
 
             $("#week1Toggle").click(function () {
@@ -276,6 +307,7 @@
     <div id="DisplayRecipes" class="hide">
         <h1>Meal Recipe</h1>
         <strong>Meal Name:</strong> <span id="selectedMealName"></span>
+        <br />
         <h2>Ingredients</h2>
         <div id="ingredientsList">
 
@@ -289,17 +321,17 @@
         <br />
         <strong>Ingredients</strong>
         <div id="newIngredientList">
-            <div>
-                <input type="text" id="newIngredientAmount" name="newIngredientAmount" placeholder="Amount" required>
-                <input type="text" id="newIngredientName" name="newIngredientName" placeholder="Ingredient Name" required>
-                <input type="text" id="newIngredientCategory" name="newIngredientCategory" placeholder="Category" required>
+            <div class="newIngredient">
+                <input type="text" id="newIngredientAmount" class="newIngredientAmount" name="newIngredientAmount" placeholder="Amount" required>
+                <input type="text" id="newIngredientName" class="newIngredientName" name="newIngredientName" placeholder="Ingredient Name" required>
+                <input type="text" id="newIngredientCategory" class="newIngredientCategory" name="newIngredientCategory" placeholder="Category" required>
             </div>
         </div>
         <br />
         <button id="addAdditionalIngredient">Add New Ingredient</button>
         <br />
         <br />
-        <button id="addMeal">Add Meal</button>
+        <button id="addNewMeal">Add Meal</button>
     </div>
     <div id="DisplayAssociateMeal" class="hide">
         <h1>Select Meal</h1>

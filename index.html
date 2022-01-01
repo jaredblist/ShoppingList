@@ -26,6 +26,7 @@
         // Initialize Firebase
         var firebaseApp = initializeApp(firebaseConfig);
         var firebaseDb = getFirestore(firebaseApp);
+        var newMealIngredientCount = 0;
 
         $(document).ready(function () {
             async function getAllMeals(db) {
@@ -50,24 +51,35 @@
                 }
             }
 
-            //var allMeals = getAllMeals(firebaseDb);
-
             $("#weeklyPlanningNav").click(function () {
                 $("#DisplayWeeks").show();
                 $("#DisplayMeals").hide();
                 $("#DisplayRecipes").hide();
+                $("#DisplayGroceryList").hide();
+                $("#DisplayAddMeal").hide();
             });
 
             $("#mealNav").click(function () {
                 $("#DisplayWeeks").hide();
                 $("#DisplayMeals").show();
                 $("#DisplayRecipes").hide();
+                $("#DisplayGroceryList").hide();
+                $("#DisplayAddMeal").hide();
+
+                getAllMeals(firebaseDb, name).then((value) => {                                     
+                    $("#mealList").empty();                    
+                    $.each(value, function (i, item) {
+                        $("#mealList").append('<span class="mealListItem">' + item.name + "</span> <br />");
+                    });
+                });
             });
 
             $(".mealListItem").click(function () {
                 $("#DisplayWeeks").hide();
                 $("#DisplayMeals").hide();
                 $("#DisplayRecipes").show();
+                $("#DisplayGroceryList").hide();
+                $("#DisplayAddMeal").hide();
 
                 var name = $(this).text();
                 /** Link up to firebase to pull this info, grab it by name **/
@@ -82,35 +94,79 @@
                     });
                 });
             });
+
+            $("#groceryListNav").click(function () {
+                $("#DisplayWeeks").hide();
+                $("#DisplayMeals").hide();
+                $("#DisplayRecipes").hide();
+                $("#DisplayGroceryList").show();
+                $("#DisplayAddMeal").hide();
+            });
+
+            $("#addMealNav").click(function () {
+                $("#DisplayWeeks").hide();
+                $("#DisplayMeals").hide();
+                $("#DisplayRecipes").hide();
+                $("#DisplayGroceryList").hide();
+                $("#DisplayAddMeal").show();
+            });
+        });
+
+        $("#addAdditionalIngredient").click(function () {
+            $("#newIngredientList").append('<div id="newIngredientDiv' + newMealIngredientCount + '" data-rowCount="' + newMealIngredientCount + '"> ' +
+                '<input type="text" id="newIngredientAmount' + newMealIngredientCount + '" name="newIngredientAmount' + newMealIngredientCount + '" placeholder="Amount" required> ' +
+                '<input type="text" id="newIngredientName' + newMealIngredientCount + '" name="newIngredientName' + newMealIngredientCount + '" placeholder="Ingredient Name" required> ' +
+                '<input type="text" id="newIngredientCategory' + newMealIngredientCount + '" name="newIngredientCategory' + newMealIngredientCount + '" placeholder="Category" required> ' +
+                '<button id="newIngredientRemove' + newMealIngredientCount + '">Remove</button>' + 
+                '</div>');
+
+            $("#newIngredientRemove" + newMealIngredientCount).click(function () {
+                var row = $(this).attr('id').substring(19);                
+                $("#newIngredientDiv" + row).remove();
+            });
+
+            newMealIngredientCount++;
+        });
+
+        $("#week1Toggle").click(function () {
+
         });
     </script>    
 </head>
+
+
+
+
+
 <body>
     <div>
-        <span id="weeklyPlanningNav">Weekly Planning</span> | <span id="mealNav">Meals</span>
+        <span id="weeklyPlanningNav">Weekly Planning</span> | <span id="groceryListNav">View Grocery List</span> | <span id="mealNav">View Meals</span> | <span id="addMealNav">Add Meal</span>
     </div>
     <hr />
 
     <div id="DisplayWeeks" class="show">
         <h1>Weekly Planning</h1>
-        <div id="Week1Meals">
-            <h2>WEEK 1</h2> <button id="Week1Toggle">Toggle</button>
+        <div id="week1Meals">
+            <div><h2>WEEK 1</h2> <button id="week1Toggle">Toggle</button></div>
             <span>Monday</span>
         </div>
-        <div id="Week2Meals">
-            <h2>WEEK 2</h2> <button id="Week2Toggle">Toggle</button>
+        <div id="week2Meals">
+            <h2>WEEK 2</h2> <button id="week2Toggle">Toggle</button>
         </div>
-        <div id="Week3Meals">
-            <h2>WEEK 3</h2> <button id="Week3Toggle">Toggle</button>
+        <div id="week3Meals">
+            <h2>WEEK 3</h2> <button id="week3Toggle">Toggle</button>
         </div>
-        <div id="Week4Meals">
-            <h2>WEEK 4</h2> <button id="Week4Toggle">Toggle</button>
+        <div id="week4Meals">
+            <h2>WEEK 4</h2> <button id="week4Toggle">Toggle</button>
         </div>
+    </div>
+    <div id="DisplayGroceryList" class="hide">
+
     </div>
     <div id="DisplayMeals" class="hide">
         <h1>Meal List</h1>
         <div id="mealList">
-            <span class="mealListItem">Eggs</span> <!-- loop this with jquery -->
+            loading..
         </div>
         <button id="addMeal">Add Meal</button>
     </div>
@@ -122,6 +178,25 @@
 
         </div>
     </div>
-
+    <div id="DisplayAddMeal" class="hide">
+        <h1>Add Meal</h1>
+        <strong><label for="newMealName">Meal Name:</label></strong>
+        <input type="text" id="newMealName" name="newMealName" required>
+        <br />
+        <br />
+        <strong>Ingredients</strong>
+        <div id="newIngredientList">
+            <div>
+                <input type="text" id="newIngredientAmount" name="newIngredientAmount" placeholder="Amount" required>
+                <input type="text" id="newIngredientName" name="newIngredientName" placeholder="Ingredient Name" required>
+                <input type="text" id="newIngredientCategory" name="newIngredientCategory" placeholder="Category" required>
+            </div>
+        </div>
+        <br />       
+        <button id="addAdditionalIngredient">Add New Ingredient</button>
+        <br />
+        <br />
+        <button id="addMeal">Add Meal</button>
+    </div>
 </body>
 </html>

@@ -256,6 +256,33 @@
             $(".clearMealsForDay").click(function () {
                 $(this).siblings(".dailyMeal").empty();
             });
+
+            $("#generateFromMeals").click(function () {
+                var allMealItemNames = "";
+
+                $.each($(".dailyMeal"), function (i, item) {   
+                    if ($(item).text() !== "")
+                        allMealItemNames += $(item).text() + ",";
+                });                
+
+                allMealItemNames.slice(0, -1);
+
+                var allMealItemsArray = allMealItemNames.split(",");
+                
+                $.each(allMealItemsArray, function (i, item) {
+                    if (item !== "" && item !== undefined) {
+                        getMeal(firebaseDb, item.trim()).then((value) => {  
+                            if (value != null) {
+                                console.log(value);
+
+                                $.each(value.ingredients, function (j, ingredient) {
+                                    $("#groceryList").append(ingredient.amount + " " + ingredient.name + "<br />");
+                                });
+                            }
+                        });
+                    }
+                });                 
+            });
         });
     </script>
 </head>
@@ -295,7 +322,11 @@
         </div>
     </div>
     <div id="DisplayGroceryList" class="hide">
+        <div id="groceryList">
 
+        </div>
+        <button id="generateFromMeals">Generate</button>
+        <button id="addIndividualItem">Add Item</button>
     </div>
     <div id="DisplayMeals" class="hide">
         <h1>Meal List</h1>

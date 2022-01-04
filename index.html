@@ -125,12 +125,16 @@
                 });
             }
 
-            function DisplayGroceryListFromDb() {
-
+            function DisplayGroceryListFromDb() {                
+                getGroceryList(firebaseDb).then((value) => {
+                    console.log(value[0].groceryList.groceryListHtml);
+                    $("#groceryList").append(value[0].groceryList.groceryListHtml);
+                });
             }
 
             //Init
             DisplayWeeklyMealsFromDb();
+            DisplayGroceryListFromDb();
 
             $("#weeklyPlanningNav").click(function () {
                 $("#DisplayWeeks").show();
@@ -392,10 +396,14 @@
                                         }
                                     }
                                 });
+
+                                var groceryListHtml = $("#groceryList").html();                                
+                                var groceriesJson = { name: "groceryList", groceryListHtml: groceryListHtml };
+                                updateDbGroceryList(firebaseDb, groceriesJson);
                             }
                         });
                     }
-                });                 
+                });    
             });
         });
     </script>

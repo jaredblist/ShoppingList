@@ -62,6 +62,76 @@
                 return docRef;
             }
 
+            async function getWeeklyMeals(db) {
+                const weeklyMealsCol = collection(db, 'weeklyMeals');
+                const weeklyMealsSnapshot = await getDocs(weeklyMealsCol);
+                const weeklyMealsList = weeklyMealsSnapshot.docs.map(doc => doc.data());
+                
+                return weeklyMealsList;
+            }
+
+            async function updateDbWeeklyMeals(db, weeklyMeals) {
+                const docRef = await setDoc(doc(db, "weeklyMeals", "weeklyMeals"), {
+                    weeklyMeals: weeklyMeals
+                });
+
+                return docRef;
+            }
+
+            async function getGroceryList(db) {
+                const GroceryListCol = collection(db, 'groceryList');
+                const GroceryListSnapshot = await getDocs(GroceryListCol);
+                const GroceryListList = GroceryListSnapshot.docs.map(doc => doc.data());
+
+                return GroceryListList;
+            }
+
+            async function updateDbGroceryList(db, groceryList) {
+                const docRef = await setDoc(doc(db, "groceryList", "groceryList"), {
+                    groceryList: groceryList
+                });
+
+                return docRef;
+            }
+
+            function DisplayWeeklyMealsFromDb() {
+                getWeeklyMeals(firebaseDb).then((value) => {                    
+                    $.each(value[0].weeklyMeals.weeklyMeals, function (i, item) {
+                        //console.log(item);
+                        if (item.day === "Week1Monday") {
+                            $("#week1MondayMeal").text(item.meals);
+                        }
+                        else if (item.day === "Week1Tuesday") {
+                            $("#week1TuesdayMeal").text(item.meals);
+                        }
+                        else if (item.day === "Week1Wednesday") {
+                            $("#week1WednesdayMeal").text(item.meals);
+                        }
+                        else if (item.day === "Week1Thursday") {
+                            $("#week1ThursdayMeal").text(item.meals);
+                        }
+                        else if (item.day === "Week1Friday") {
+                            $("#week1FridayMeal").text(item.meals);
+                        }
+                        else if (item.day === "Week1Saturday") {
+                            $("#week1SaturdayMeal").text(item.meals);
+                        }
+                        else if (item.day === "Week1Sunday") {
+                            $("#week1SundayMeal").text(item.meals);
+                        }
+                    });
+
+                    addClickToMealListItem();
+                });
+            }
+
+            function DisplayGroceryListFromDb() {
+
+            }
+
+            //Init
+            DisplayWeeklyMealsFromDb();
+
             $("#weeklyPlanningNav").click(function () {
                 $("#DisplayWeeks").show();
                 $("#DisplayMeals").hide();
@@ -251,13 +321,30 @@
                 }
 
                 associatedMeal = null;
+                UpdateWeeklyMeals();
             });
+
+            function UpdateWeeklyMeals() {
+                var weeklyMealsJson = {};
+                var weeklyMeals = [];
+
+                weeklyMealsJson.weeklyMeals = weeklyMeals;
+                weeklyMealsJson.weeklyMeals.push({ day: "Week1Monday", meals: $("#week1MondayMeal").text()});
+                weeklyMealsJson.weeklyMeals.push({ day: "Week1Tuesday", meals: $("#week1TuesdayMeal").text() });
+                weeklyMealsJson.weeklyMeals.push({ day: "Week1Wednesday", meals: $("#week1WednesdayMeal").text() });
+                weeklyMealsJson.weeklyMeals.push({ day: "Week1Thursday", meals: $("#week1ThursdayMeal").text() });
+                weeklyMealsJson.weeklyMeals.push({ day: "Week1Friday", meals: $("#week1FridayMeal").text() });
+                weeklyMealsJson.weeklyMeals.push({ day: "Week1Saturday", meals: $("#week1SaturdayMeal").text() });
+                weeklyMealsJson.weeklyMeals.push({ day: "Week1Sunday", meals: $("#week1SundayMeal").text() });
+
+                updateDbWeeklyMeals(firebaseDb, weeklyMealsJson);
+            }
 
             $(".clearMealsForDay").click(function () {
                 $(this).siblings(".dailyMeal").empty();
             });
 
-            $("#generateFromMeals").click(function () {
+            $("#generateFromMeals").click(function () {                
                 var allMealItemNames = "";
 
                 $.each($(".dailyMeal"), function (i, item) {   
@@ -267,16 +354,43 @@
 
                 allMealItemNames.slice(0, -1);
 
-                var allMealItemsArray = allMealItemNames.split(",");
-                
+                var allMealItemsArray = allMealItemNames.split(",");                
+
                 $.each(allMealItemsArray, function (i, item) {
                     if (item !== "" && item !== undefined) {
                         getMeal(firebaseDb, item.trim()).then((value) => {  
                             if (value != null) {
-                                console.log(value);
+                                value.ingredients.sort(function (a, b) {
+                                    return $(a.category).text().toUpperCase().localeCompare($(b.category).text().toUpperCase());
+                                })
 
                                 $.each(value.ingredients, function (j, ingredient) {
-                                    $("#groceryList").append(ingredient.amount + " " + ingredient.name + "<br />");
+                                    if (ingredient.category === "" || ingredient.category === undefined) {
+                                        var categoryDiv = $("#groceryList").children(".uncategorized");
+
+                                        if (categoryDiv != null && categoryDiv.length > 0) {
+                                            $(categoryDiv).append(ingredient.amount + " " + ingredient.name + "<br />");
+                                        }
+                                        else {
+                                            $("#groceryList").append("<div class='uncategorized'>" +
+                                            "<strong>UNCATEGORIZED</strong><br />" +
+                                            ingredient.amount + " " + ingredient.name + "<br />" +
+                                            "</div>");
+                                        }
+                                    }
+                                    else {                                        
+                                        var categoryDiv = $("#groceryList").children("." + ingredient.category + "Category");                                        
+                                        
+                                        if (categoryDiv != null && categoryDiv.length > 0) {                                            
+                                            $(categoryDiv).append(ingredient.amount + " " + ingredient.name + "<br />");
+                                        }
+                                        else {                                            
+                                            $("#groceryList").append("<div class='" + ingredient.category + "Category'>" +
+                                            "<strong>" + ingredient.category.toUpperCase() + "</strong><br />" +
+                                            ingredient.amount + " " + ingredient.name + "<br />" +
+                                            "</div>");
+                                        }
+                                    }
                                 });
                             }
                         });

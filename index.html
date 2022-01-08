@@ -29,13 +29,13 @@
         var firebaseDb = getFirestore(firebaseApp);
         var newMealIngredientCount = 0;
         var associatedMeal = null;
+        var defaultNewItemCategory = null;
 
         $(document).ready(function () {
             async function getAllMeals(db) {
                 const citiesCol = collection(db, 'meals');
                 const citySnapshot = await getDocs(citiesCol);
                 const cityList = citySnapshot.docs.map(doc => doc.data());
-                //console.log(cityList);
                 return cityList;
             }
 
@@ -126,15 +126,73 @@
             }
 
             function DisplayGroceryListFromDb() {                
-                getGroceryList(firebaseDb).then((value) => {
-                    console.log(value[0].groceryList.groceryListHtml);
+                getGroceryList(firebaseDb).then((value) => {                    
                     $("#groceryList").append(value[0].groceryList.groceryListHtml);
+
+                    $.each($(".groceryListItemChecked"), function (i, item) {                        
+                        $(item).children(".groceryListCheckbox").prop('checked', true);
+                    });
                 });
+            }
+
+            function toggleGroceryListItem() {                 
+                $(".groceryListCheckbox").off();
+                $(".groceryListCheckbox").change(function () {     
+                    console.log("test");
+                    if ($(this).is(":checked")) {
+                        $(this).parent().addClass("groceryListItemChecked");
+                    }
+                    else {
+                        $(this).parent().removeClass("groceryListItemChecked");
+                    }
+
+                    var groceryListHtml = $("#groceryList").html();
+                    var groceriesJson = { name: "groceryList", groceryListHtml: groceryListHtml };
+                    updateDbGroceryList(firebaseDb, groceriesJson);
+                });
+            }
+
+            function nameMatch(string1, string2) {
+                string1 = string1.toUpperCase().trim();
+                string2 = string2.toUpperCase().trim();
+
+                var string1Depluralized = string1;
+                var string2Depluralized = string2;
+                
+                if (string1.charAt(string1.length - 1) === 'S')
+                    if (string1.charAt(string1.length - 2) === 'E')
+                        string1Depluralized = string1.slice(0, -2);
+                    else
+                        string1Depluralized = string1.slice(0, -1);
+
+                if (string2.charAt(string2.length - 1) === 'S')
+                    if (string2.charAt(string2.length - 2) === 'E')
+                        string2Depluralized = string2.slice(0, -2);
+                    else
+                        string2Depluralized = string2.slice(0, -1);
+
+                console.log(string1);
+                console.log(string2);
+                console.log(string1Depluralized);
+                console.log(string2Depluralized);
+
+                if (string1 === string2 || string1Depluralized === string2Depluralized)
+                    return true;
+                else
+                    return false;
             }
 
             //Init
             DisplayWeeklyMealsFromDb();
-            DisplayGroceryListFromDb();
+            DisplayGroceryListFromDb();             
+
+            $("#clearCheckedItems").click(function () {                                
+                $(".groceryListItemChecked").remove();
+
+                var groceryListHtml = $("#groceryList").html();
+                var groceriesJson = { name: "groceryList", groceryListHtml: groceryListHtml };
+                updateDbGroceryList(firebaseDb, groceriesJson);
+            });
 
             $("#weeklyPlanningNav").click(function () {
                 $("#DisplayWeeks").show();
@@ -192,6 +250,11 @@
                 $("#DisplayGroceryList").show();
                 $("#DisplayAddMeal").hide();
                 $("#DisplayAssociateMeal").hide();
+
+                toggleGroceryListItem();
+                $("#clearCheckedItems").click(function () {
+                    $("#groceryList").remove(".groceryListItemChecked");
+                });
             });
 
             $("#addMealNav").click(function () {
@@ -348,37 +411,39 @@
                 $(this).siblings(".dailyMeal").empty();
             });
 
-            $("#generateFromMeals").click(function () {                
-                var allMealItemNames = "";
+            $("#generateFromMeals").click(function () {   
+                if (confirm("Do you want to generate ingredients from meal list?")) {
+                    var allMealItemNames = "";
 
-                $.each($(".dailyMeal"), function (i, item) {   
-                    if ($(item).text() !== "")
-                        allMealItemNames += $(item).text() + ",";
-                });                
+                    $.each($(".dailyMeal"), function (i, item) {
+                        if ($(item).text() !== "")
+                            allMealItemNames += $(item).text() + ",";
+                    });
 
-                allMealItemNames.slice(0, -1);
+                    allMealItemNames.slice(0, -1);
 
-                var allMealItemsArray = allMealItemNames.split(",");                
+                    var allMealItemsArray = allMealItemNames.split(",");
 
-                $.each(allMealItemsArray, function (i, item) {
-                    if (item !== "" && item !== undefined) {
-                        getMeal(firebaseDb, item.trim()).then((value) => {  
-                            if (value != null) {
-                                value.ingredients.sort(function (a, b) {
-                                    return $(a.category).text().toUpperCase().localeCompare($(b.category).text().toUpperCase());
-                                })
+                    $.each(allMealItemsArray, function (i, item) {
+                        if (item !== "" && item !== undefined) {
+                            getMeal(firebaseDb, item.trim()).then((value) => {
+                                if (value != null) {
+                                    value.ingredients.sort(function (a, b) {
+                                        return $(a.category).text().toUpperCase().localeCompare($(b.category).text().toUpperCase());
+                                    })
 
-                                $.each(value.ingredients, function (j, ingredient) {
-                                    addIngredientToGroceryList(ingredient);
-                                });
+                                    $.each(value.ingredients, function (j, ingredient) {
+                                        addIngredientToGroceryList(ingredient);
+                                    });
 
-                                var groceryListHtml = $("#groceryList").html();                                
-                                var groceriesJson = { name: "groceryList", groceryListHtml: groceryListHtml };
-                                updateDbGroceryList(firebaseDb, groceriesJson);
-                            }
-                        });
-                    }
-                });    
+                                    var groceryListHtml = $("#groceryList").html();
+                                    var groceriesJson = { name: "groceryList", groceryListHtml: groceryListHtml };
+                                    updateDbGroceryList(firebaseDb, groceriesJson);
+                                }
+                            });
+                        }
+                    });
+                }
             });
 
             $("#addIndividualItem").click(function () {
@@ -397,32 +462,66 @@
             });
 
             function addIngredientToGroceryList(ingredient) {
-                if (ingredient.category === "" || ingredient.category === undefined) {
-                    var categoryDiv = $("#groceryList").children(".uncategorized");
+                var itemFound = false;
+                $.each($(".groceryListItemName"), function (i, item) {                    
+                    if (itemFound === false && nameMatch($(item).text(), ingredient.name)) {
+                        if ($(item).siblings(".groceryListItemAmount").length > 0 && ingredient.amount !== "" && ingredient.amount !== undefined) {
+                            var currentAmount = $(item).siblings(".groceryListItemAmount").text().match(/\d+/)[0];
+                            currentAmount = +currentAmount + +ingredient.amount.match(/\d+/)[0];
+                            $(item).siblings(".groceryListItemAmount").text(currentAmount + " " + ingredient.amount.replace(/[0-9]/g, ''));
+                            $(item).text(ingredient.name);
+                            itemFound = true;
+                        }
+                    }
+                });
 
-                    if (categoryDiv != null && categoryDiv.length > 0) {
-                        $(categoryDiv).append(ingredient.amount + " " + ingredient.name + "<br />");
+                if (itemFound === false) {
+                    if (ingredient.category === "" || ingredient.category === undefined) {
+                        var categoryDiv = $("#groceryList").children(".uncategorized");
+
+                        if (categoryDiv != null && categoryDiv.length > 0) {
+                            $(categoryDiv).append("<span class='groceryListItem'><input class='groceryListCheckbox' type='checkbox'><span class='groceryListItemAmount'>" + ingredient.amount + "</span> <span class='groceryListItemName'>" + ingredient.name + "</span><br /></span>");
+                        }
+                        else {
+                            $("#groceryList").append("<div class='uncategorized'>" +
+                                "<strong>UNCATEGORIZED</strong><br />" +
+                                "<span class='groceryListItem'><input class='groceryListCheckbox' type='checkbox'><span class='groceryListItemAmount'>" + ingredient.amount + "</span> <span class='groceryListItemName'>" + ingredient.name + "</span><br /></span>" +
+                                "</div>");
+                        }
                     }
                     else {
-                        $("#groceryList").append("<div class='uncategorized'>" +
-                            "<strong>UNCATEGORIZED</strong><br />" +
-                            ingredient.amount + " " + ingredient.name + "<br />" +
-                            "</div>");
-                    }
-                }
-                else {
-                    var categoryDiv = $("#groceryList").children("." + ingredient.category + "Category");
+                        var categoryDiv = $("#groceryList").children("." + ingredient.category + "Category");
 
-                    if (categoryDiv != null && categoryDiv.length > 0) {
-                        $(categoryDiv).append(ingredient.amount + " " + ingredient.name + "<br />");
-                    }
-                    else {
-                        $("#groceryList").prepend("<div class='" + ingredient.category + "Category'>" +
-                            "<strong>" + ingredient.category.toUpperCase() + "</strong><br />" +
-                            ingredient.amount + " " + ingredient.name + "<br />" +
-                            "</div>");
+                        if (categoryDiv != null && categoryDiv.length > 0) {
+                            $(categoryDiv).append("<span class='groceryListItem'><input class='groceryListCheckbox' type='checkbox'><span class='groceryListItemAmount'>" + ingredient.amount + "</span> <span class='groceryListItemName'>" + ingredient.name + "</span><br /></span>");
+                        }
+                        else {
+                            $("#groceryList").prepend("<div class='" + ingredient.category + "Category'>" +
+                                "<strong>" + ingredient.category.toUpperCase() + "</strong><br />" +
+                                "<span class='groceryListItem'><input class='groceryListCheckbox' type='checkbox'><span class='groceryListItemAmount'>" + ingredient.amount + "</span> <span class='groceryListItemName'>" + ingredient.name + "</span><br /></span>" +
+                                "</div>");
+                        }
                     }
                 }
+
+                toggleGroceryListItem();                
+            }
+        });
+
+        $("#togglePlanningMode").click(function () {
+            if ($(this).text() === "Planning Mode") {
+                $(this).text("Shopping Mode");
+
+                $("#generateFromMeals").hide();
+                $(".newIndividualItem").hide();
+                $("#addIndividualItem").hide();      
+            }
+            else {
+                $(this).text("Planning Mode");
+
+                $("#generateFromMeals").show();
+                $(".newIndividualItem").show();
+                $("#addIndividualItem").show();
             }
         });
     </script>
@@ -463,12 +562,16 @@
         </div>
     </div>
     <div id="DisplayGroceryList" class="hide">
+        <button id="togglePlanningMode">Planning Mode</button>
+        <br/>
+        <br/>
         <div id="groceryList">
 
         </div>
         <br />
         <br />
         <button id="generateFromMeals">Generate</button>
+        <button id="clearCheckedItems">Clear Checked</button>
 
         <br />
         <br />

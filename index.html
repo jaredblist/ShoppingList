@@ -184,7 +184,7 @@
 
             //Init
             DisplayWeeklyMealsFromDb();
-            DisplayGroceryListFromDb();             
+            DisplayGroceryListFromDb();              
 
             $("#clearCheckedItems").click(function () {                                
                 $(".groceryListItemChecked").remove();
@@ -251,9 +251,17 @@
                 $("#DisplayAddMeal").hide();
                 $("#DisplayAssociateMeal").hide();
 
+                incrementAmountClickEvent();
+                decrementAmountClickEvent();
                 toggleGroceryListItem();
                 $("#clearCheckedItems").click(function () {
                     $("#groceryList").remove(".groceryListItemChecked");
+
+                    $.each($("#groceryList").children(), function (i, item) {                        
+                        if ($(item).children(".groceryListItem").length === 0) {                            
+                            $("." + $(item).attr("class")).remove();
+                        }
+                    });
                 });
             });
 
@@ -409,6 +417,7 @@
 
             $(".clearMealsForDay").click(function () {
                 $(this).siblings(".dailyMeal").empty();
+                UpdateWeeklyMeals();
             });
 
             $("#generateFromMeals").click(function () {   
@@ -480,12 +489,12 @@
                         var categoryDiv = $("#groceryList").children(".uncategorized");
 
                         if (categoryDiv != null && categoryDiv.length > 0) {
-                            $(categoryDiv).append("<span class='groceryListItem'><input class='groceryListCheckbox' type='checkbox'><span class='groceryListItemAmount'>" + ingredient.amount + "</span> <span class='groceryListItemName'>" + ingredient.name + "</span><br /></span>");
+                            $(categoryDiv).append("<span class='groceryListItem'><input class='groceryListCheckbox' type='checkbox'><span class='groceryListItemAmount'>" + ingredient.amount + "</span> <span class='groceryListItemName'>" + ingredient.name + "</span><span class='planningModeButtons'><button class='increment'>+</button> <button class='decrement'>-</button></span><br /></span>");
                         }
                         else {
                             $("#groceryList").append("<div class='uncategorized'>" +
                                 "<strong>UNCATEGORIZED</strong><br />" +
-                                "<span class='groceryListItem'><input class='groceryListCheckbox' type='checkbox'><span class='groceryListItemAmount'>" + ingredient.amount + "</span> <span class='groceryListItemName'>" + ingredient.name + "</span><br /></span>" +
+                                "<span class='groceryListItem'><input class='groceryListCheckbox' type='checkbox'><span class='groceryListItemAmount'>" + ingredient.amount + "</span> <span class='groceryListItemName'>" + ingredient.name + "</span><span class='planningModeButtons'><button class='increment'>+</button> <button class='decrement'>-</button></span><br /></span>" +
                                 "</div>");
                         }
                     }
@@ -493,37 +502,77 @@
                         var categoryDiv = $("#groceryList").children("." + ingredient.category + "Category");
 
                         if (categoryDiv != null && categoryDiv.length > 0) {
-                            $(categoryDiv).append("<span class='groceryListItem'><input class='groceryListCheckbox' type='checkbox'><span class='groceryListItemAmount'>" + ingredient.amount + "</span> <span class='groceryListItemName'>" + ingredient.name + "</span><br /></span>");
+                            $(categoryDiv).append("<span class='groceryListItem'><input class='groceryListCheckbox' type='checkbox'><span class='groceryListItemAmount'>" + ingredient.amount + "</span> <span class='groceryListItemName'>" + ingredient.name + "</span><span class='planningModeButtons'><button class='increment'>+</button> <button class='decrement'>-</button></span><br /></span>");
                         }
                         else {
                             $("#groceryList").prepend("<div class='" + ingredient.category + "Category'>" +
                                 "<strong>" + ingredient.category.toUpperCase() + "</strong><br />" +
-                                "<span class='groceryListItem'><input class='groceryListCheckbox' type='checkbox'><span class='groceryListItemAmount'>" + ingredient.amount + "</span> <span class='groceryListItemName'>" + ingredient.name + "</span><br /></span>" +
+                                "<span class='groceryListItem'><input class='groceryListCheckbox' type='checkbox'><span class='groceryListItemAmount'>" + ingredient.amount + "</span> <span class='groceryListItemName'>" + ingredient.name + "</span><span class='planningModeButtons'><button class='increment'>+</button> <button class='decrement'>-</button></span><br /></span>" +
                                 "</div>");
                         }
                     }
                 }
 
-                toggleGroceryListItem();                
+                toggleGroceryListItem();  
+                incrementAmountClickEvent();
+                decrementAmountClickEvent();
             }
-        });
 
-        $("#togglePlanningMode").click(function () {
-            if ($(this).text() === "Planning Mode") {
-                $(this).text("Shopping Mode");
+            $("#togglePlanningMode").click(function () {
+                if ($(this).text() === "Planning Mode") {
+                    $(this).text("Shopping Mode");
 
-                $("#generateFromMeals").hide();
-                $(".newIndividualItem").hide();
-                $("#addIndividualItem").hide();      
+                    $("#generateFromMeals").hide();
+                    $(".newIndividualItem").hide();
+                    $("#addIndividualItem").hide();
+                    $(".planningModeButtons").hide();
+                }
+                else {
+                    $(this).text("Planning Mode");
+
+                    $("#generateFromMeals").show();
+                    $(".newIndividualItem").show();
+                    $("#addIndividualItem").show();
+                    $(".planningModeButtons").show();
+                }
+            });
+
+            function incrementAmountClickEvent() {
+                $(".increment").click(function () {
+                    if ($(this).parent().siblings(".groceryListItemAmount").length > 0) {
+                        var currentAmount = $(this).parent().siblings(".groceryListItemAmount").text().match(/\d+/)[0];
+                        currentAmount = +currentAmount + 1;
+                        $(this).parent().siblings(".groceryListItemAmount").text(currentAmount + " " + $(this).parent().siblings(".groceryListItemAmount").text().replace(/[0-9]/g, ''));
+
+                        var groceryListHtml = $("#groceryList").html();
+                        var groceriesJson = { name: "groceryList", groceryListHtml: groceryListHtml };
+                        updateDbGroceryList(firebaseDb, groceriesJson);
+                    }
+                });
             }
-            else {
-                $(this).text("Planning Mode");
 
-                $("#generateFromMeals").show();
-                $(".newIndividualItem").show();
-                $("#addIndividualItem").show();
+            function decrementAmountClickEvent() {
+                $(".decrement").click(function () {
+                    if ($(this).parent().siblings(".groceryListItemAmount").length > 0) {
+                        var currentAmount = $(this).parent().siblings(".groceryListItemAmount").text().match(/\d+/)[0];
+                        currentAmount = +currentAmount - 1;
+
+                        if (currentAmount >= 0) {
+                            $(this).parent().siblings(".groceryListItemAmount").text(currentAmount + " " + $(this).parent().siblings(".groceryListItemAmount").text().replace(/[0-9]/g, ''));
+
+                            var groceryListHtml = $("#groceryList").html();
+                            var groceriesJson = { name: "groceryList", groceryListHtml: groceryListHtml };
+                            updateDbGroceryList(firebaseDb, groceriesJson);
+                        }
+                    }
+                });
             }
-        });
+
+
+
+
+            //document start ends here
+        });        
     </script>
 </head>
 

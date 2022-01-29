@@ -62,6 +62,14 @@
                 return docRef;
             }
 
+            async function addCategoryOption(db, category) {                
+                const docRef = await setDoc(doc(db, "categoryOptions", category), {
+                    name: category
+                });
+
+                return docRef;
+            }
+
             async function getWeeklyMeals(db) {
                 const weeklyMealsCol = collection(db, 'weeklyMeals');
                 const weeklyMealsSnapshot = await getDocs(weeklyMealsCol);
@@ -92,6 +100,14 @@
                 });
 
                 return docRef;
+            }
+
+            async function getCategoryOptions(db) {
+                const categoryOptionsCol = collection(db, 'categoryOptions');
+                const categoryOptionsSnapshot = await getDocs(categoryOptionsCol);
+                const categoryOptionsList = categoryOptionsSnapshot.docs.map(doc => doc.data());
+
+                return categoryOptionsList;
             }
 
             function DisplayWeeklyMealsFromDb() {
@@ -137,8 +153,7 @@
 
             function toggleGroceryListItem() {                 
                 $(".groceryListCheckbox").off();
-                $(".groceryListCheckbox").change(function () {     
-                    console.log("test");
+                $(".groceryListCheckbox").change(function () {                        
                     if ($(this).is(":checked")) {
                         $(this).parent().addClass("groceryListItemChecked");
                     }
@@ -171,11 +186,7 @@
                     else
                         string2Depluralized = string2.slice(0, -1);
 
-                console.log(string1);
-                console.log(string2);
-                console.log(string1Depluralized);
-                console.log(string2Depluralized);
-
+                
                 if (string1 === string2 || string1Depluralized === string2Depluralized)
                     return true;
                 else
@@ -254,6 +265,13 @@
                 incrementAmountClickEvent();
                 decrementAmountClickEvent();
                 toggleGroceryListItem();
+
+                getCategoryOptions(firebaseDb).then((value) => {                     
+                    $.each(value, function (i, item) {
+                        $("#newIndividualItemCategories").append("<option value='" + item.name + "'/>");                            
+                    });
+                });
+
                 $("#clearCheckedItems").click(function () {
                     $("#groceryList").remove(".groceryListItemChecked");
 
@@ -274,14 +292,16 @@
                 $("#DisplayAssociateMeal").hide();
             });
 
-
             $("#addAdditionalIngredient").click(function () {
                 $("#newIngredientList").append('<div id="newIngredientDiv' + newMealIngredientCount + '" class="newIngredient"> ' +
                     '<input type="text" id="newIngredientAmount' + newMealIngredientCount + '" class="newIngredientAmount" name="newIngredientAmount' + newMealIngredientCount + '" placeholder="Amount" required> ' +
                     '<input type="text" id="newIngredientName' + newMealIngredientCount + '" class="newIngredientName" name="newIngredientName' + newMealIngredientCount + '" placeholder="Ingredient Name" required> ' +
-                    '<input type="text" id="newIngredientCategory' + newMealIngredientCount + '" class="newIngredientCategory" name="newIngredientCategory' + newMealIngredientCount + '" placeholder="Category" required> ' +
+                    '<input type="text" id="newIngredientCategoryInput' + newMealIngredientCount + '" class="newIngredientCategory" list="newIngredientCategories' + newMealIngredientCount + '" name = "newIngredientCategoryInput' + newMealIngredientCount + '" placeholder = "Category" required > ' +
+                    '<datalist id="newIngredientCategories' + newMealIngredientCount + '"></datalist>' +
                     '<button id="newIngredientRemove' + newMealIngredientCount + '">Remove</button>' +
                     '</div>');
+
+               
 
                 $("#newIngredientRemove" + newMealIngredientCount).click(function () {
                     var row = $(this).attr('id').substring(19);
@@ -302,9 +322,23 @@
                     var ingredientJson = {
                         amount: $(item).children(".newIngredientAmount").val(),
                         name: $(item).children(".newIngredientName").val(),
-                        category: $(item).children(".newIngredientCategory").val()
+                        category: $(item).children(".newIngredientCategory").val()                        
                     };
                     mealJson.ingredients.push(ingredientJson);
+
+                    var category = ingredientJson.category;
+                    getCategoryOptions(firebaseDb).then((value) => {                        
+                        var foundCategory = false;
+
+                        $.each(value, function (i, item) {
+                            if (item.name === category)
+                                foundCategory = true;
+                        });
+
+                        if (!foundCategory) {
+                            addCategoryOption(firebaseDb, category);
+                        }
+                    });
                 });
 
                 addMeal(firebaseDb, mealJson);
@@ -457,8 +491,10 @@
 
             $("#addIndividualItem").click(function () {
                 if ($("#newIndividualItemAmount").val() !== "" && $("newIndividualItemName") !== "") {                    
-                    var newItem = { amount: $("#newIndividualItemAmount").val(), name: $("#newIndividualItemName").val(), category: $("#newIndividualItemCategory").val() }; 
+                    var newItem = { amount: $("#newIndividualItemAmount").val(), name: $("#newIndividualItemName").val(), category: $("#newIndividualItemCategoryInput").val() }; 
                     addIngredientToGroceryList(newItem);     
+
+                    var category = $("#newIndividualItemCategoryInput").val();
 
                     var groceryListHtml = $("#groceryList").html();
                     var groceriesJson = { name: "groceryList", groceryListHtml: groceryListHtml };
@@ -466,7 +502,21 @@
 
                     $("#newIndividualItemAmount").val("");
                     $("#newIndividualItemName").val("");
-                    $("#newIndividualItemCategory").val("");
+                    $("#newIndividualItemCategoryInput").val("");
+
+
+                    getCategoryOptions(firebaseDb).then((value) => {
+                        var foundCategory = false;
+
+                        $.each(value, function (i, item) {
+                            if (item.name === category)
+                                foundCategory = true;
+                        });
+
+                        if (!foundCategory) {
+                            addCategoryOption(firebaseDb, category);
+                        }
+                    });
                 }
             });
 
@@ -626,8 +676,11 @@
         <br />
         <div class="newIndividualItem">
             <input type="text" id="newIndividualItemAmount" class="newIndividualItemAmount" name="newIndividualItemAmount" placeholder="Amount" required>
-            <input type="text" id="newIndividualItemName" class="newIndividualItemName" name="newIndividualItemName" placeholder="Ingredient Name" required>
-            <input type="text" id="newIndividualItemCategory" class="newIndividualItemCategory" name="newIndividualItemCategory" placeholder="Category" required>
+            <input type="text" id="newIndividualItemName" class="newIndividualItemName" name="newIndividualItemName" placeholder="Ingredient Name" required>            
+            <input type="text" id="newIndividualItemCategoryInput" list="newIndividualItemCategories" name="newIndividualItemCategoryInput" />
+            <datalist id="newIndividualItemCategories">
+                
+            </datalist>
         </div>
         <button id="addIndividualItem">Add Item</button>
     </div>
@@ -658,7 +711,9 @@
             <div class="newIngredient">
                 <input type="text" id="newIngredientAmount" class="newIngredientAmount" name="newIngredientAmount" placeholder="Amount" required>
                 <input type="text" id="newIngredientName" class="newIngredientName" name="newIngredientName" placeholder="Ingredient Name" required>
-                <input type="text" id="newIngredientCategory" class="newIngredientCategory" name="newIngredientCategory" placeholder="Category" required>
+                <input type="text" id="newIngredientCategoryInput" class="newIngredientCategoryInput" list="newIngredientCategories" name="newIngredientCategoryInput" />
+                <datalist id="newIngredientCategories">
+                </datalist>
             </div>
         </div>
         <br />

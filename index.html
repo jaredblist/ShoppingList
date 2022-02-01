@@ -53,7 +53,7 @@
                 }
             }
 
-            async function addMeal(db, meal) {                
+            async function addMeal(db, meal) {
                 const docRef = await setDoc(doc(db, "meals", meal.name), {
                     name: meal.name,
                     ingredients: meal.ingredients
@@ -62,7 +62,7 @@
                 return docRef;
             }
 
-            async function addCategoryOption(db, category) {                
+            async function addCategoryOption(db, category) {
                 const docRef = await setDoc(doc(db, "categoryOptions", category), {
                     name: category
                 });
@@ -74,7 +74,7 @@
                 const weeklyMealsCol = collection(db, 'weeklyMeals');
                 const weeklyMealsSnapshot = await getDocs(weeklyMealsCol);
                 const weeklyMealsList = weeklyMealsSnapshot.docs.map(doc => doc.data());
-                
+
                 return weeklyMealsList;
             }
 
@@ -110,8 +110,44 @@
                 return categoryOptionsList;
             }
 
+            function numberToFraction(amount) {
+                // This is a whole number and doesn't need modification.
+                if (parseFloat(amount) === parseInt(amount)) {
+                    return amount;
+                }
+                // Next 12 lines are cribbed from https://stackoverflow.com/a/23575406.
+                var gcd = function (a, b) {
+                    if (b < 0.0000001) {
+                        return a;
+                    }
+                    return gcd(b, Math.floor(a % b));
+                };
+                var len = amount.toString().length - 2;
+                var denominator = Math.pow(10, len);
+                var numerator = amount * denominator;
+                var divisor = gcd(numerator, denominator);
+                numerator /= divisor;
+                denominator /= divisor;
+                var base = 0;
+                // In a scenario like 3/2, convert to 1 1/2
+                // by pulling out the base number and reducing the numerator.
+                if (numerator > denominator) {
+                    base = Math.floor(numerator / denominator);
+                    numerator -= base * denominator;
+                }
+                amount = Math.floor(numerator) + '/' + Math.floor(denominator);
+                if (base) {
+                    amount = base + ' ' + amount;
+                }
+                return amount;
+            };
+
+            function sleepFunction(ms) {
+                return new Promise(resolve => setTimeout(resolve, ms));
+            }
+
             function DisplayWeeklyMealsFromDb() {
-                getWeeklyMeals(firebaseDb).then((value) => {                    
+                getWeeklyMeals(firebaseDb).then((value) => {
                     $.each(value[0].weeklyMeals.weeklyMeals, function (i, item) {
                         //console.log(item);
                         if (item.day === "Week1Monday") {
@@ -135,25 +171,88 @@
                         else if (item.day === "Week1Sunday") {
                             $("#week1SundayMeal").text(item.meals);
                         }
+                        else if (item.day === "Week2Monday") {
+                            $("#week2MondayMeal").text(item.meals);
+                        }
+                        else if (item.day === "Week2Tuesday") {
+                            $("#week2TuesdayMeal").text(item.meals);
+                        }
+                        else if (item.day === "Week2Wednesday") {
+                            $("#week2WednesdayMeal").text(item.meals);
+                        }
+                        else if (item.day === "Week2Thursday") {
+                            $("#week2ThursdayMeal").text(item.meals);
+                        }
+                        else if (item.day === "Week2Friday") {
+                            $("#week2FridayMeal").text(item.meals);
+                        }
+                        else if (item.day === "Week2Saturday") {
+                            $("#week2SaturdayMeal").text(item.meals);
+                        }
+                        else if (item.day === "Week2Sunday") {
+                            $("#week2SundayMeal").text(item.meals);
+                        }
+                        else if (item.day === "Week3Monday") {
+                            $("#week3MondayMeal").text(item.meals);
+                        }
+                        else if (item.day === "Week3Tuesday") {
+                            $("#week3TuesdayMeal").text(item.meals);
+                        }
+                        else if (item.day === "Week3Wednesday") {
+                            $("#week3WednesdayMeal").text(item.meals);
+                        }
+                        else if (item.day === "Week3Thursday") {
+                            $("#week3ThursdayMeal").text(item.meals);
+                        }
+                        else if (item.day === "Week3Friday") {
+                            $("#week3FridayMeal").text(item.meals);
+                        }
+                        else if (item.day === "Week3Saturday") {
+                            $("#week3SaturdayMeal").text(item.meals);
+                        }
+                        else if (item.day === "Week3Sunday") {
+                            $("#week3SundayMeal").text(item.meals);
+                        }
+                        else if (item.day === "Week4Monday") {
+                            $("#week4MondayMeal").text(item.meals);
+                        }
+                        else if (item.day === "Week4Tuesday") {
+                            $("#week4TuesdayMeal").text(item.meals);
+                        }
+                        else if (item.day === "Week4Wednesday") {
+                            $("#week4WednesdayMeal").text(item.meals);
+                        }
+                        else if (item.day === "Week4Thursday") {
+                            $("#week4ThursdayMeal").text(item.meals);
+                        }
+                        else if (item.day === "Week4Friday") {
+                            $("#week4FridayMeal").text(item.meals);
+                        }
+                        else if (item.day === "Week4Saturday") {
+                            $("#week4SaturdayMeal").text(item.meals);
+                        }
+                        else if (item.day === "Week4Sunday") {
+                            $("#week4SundayMeal").text(item.meals);
+                        }
                     });
 
                     addClickToMealListItem();
                 });
             }
 
-            function DisplayGroceryListFromDb() {                
-                getGroceryList(firebaseDb).then((value) => {                    
+            function DisplayGroceryListFromDb() {
+                getGroceryList(firebaseDb).then((value) => {
                     $("#groceryList").append(value[0].groceryList.groceryListHtml);
 
-                    $.each($(".groceryListItemChecked"), function (i, item) {                        
+                    $.each($(".groceryListItemChecked"), function (i, item) {
                         $(item).children(".groceryListCheckbox").prop('checked', true);
                     });
                 });
             }
 
-            function toggleGroceryListItem() {                 
+            function toggleGroceryListItem() {
                 $(".groceryListCheckbox").off();
-                $(".groceryListCheckbox").change(function () {                        
+                $(".groceryListCheckbox").change(function () {
                     if ($(this).is(":checked")) {
                         $(this).parent().addClass("groceryListItemChecked");
                     }
@@ -173,7 +272,7 @@
 
                 var string1Depluralized = string1;
                 var string2Depluralized = string2;
-                
+
                 if (string1.charAt(string1.length - 1) === 'S')
                     if (string1.charAt(string1.length - 2) === 'E')
                         string1Depluralized = string1.slice(0, -2);
@@ -186,7 +285,7 @@
                     else
                         string2Depluralized = string2.slice(0, -1);
 
-                
+
                 if (string1 === string2 || string1Depluralized === string2Depluralized)
                     return true;
                 else
@@ -195,10 +294,20 @@
 
             //Init
             DisplayWeeklyMealsFromDb();
-            DisplayGroceryListFromDb();              
+            DisplayGroceryListFromDb();
 
-            $("#clearCheckedItems").click(function () {                                
+            $("#clearCheckedItems").click(function () {
                 $(".groceryListItemChecked").remove();
+
+                $.each($(".categoryDiv"), function (i, item) {
+                    //if no children with class then remove
+                    var children = $(this).children(".groceryListItem");
+
+                    if (children.length === 0)
+                        $(this).addClass("removeThisItem");
+                });
+
+                $(".removeThisItem").remove();
 
                 var groceryListHtml = $("#groceryList").html();
                 var groceriesJson = { name: "groceryList", groceryListHtml: groceryListHtml };
@@ -224,8 +333,9 @@
 
                 getAllMeals(firebaseDb, name).then((value) => {
                     $("#mealList").empty();
+                    value.sort();
                     $.each(value, function (i, item) {
-                        $("#mealList").append('<span class="mealListItem">' + item.name + "</span> <br />");
+                        $("#mealList").append('<span class="mealListItem">' + item.name + "</span> <br /><hr class='sideDivider' align='left' />");
                     });
 
                     addClickToMealListItem();
@@ -233,7 +343,7 @@
             });
 
             function addClickToMealListItem() {
-                $(".mealListItem").click(function () {                    
+                $(".mealListItem").click(function () {
                     $("#DisplayWeeks").hide();
                     $("#DisplayMeals").hide();
                     $("#DisplayRecipes").show();
@@ -242,17 +352,17 @@
                     $("#DisplayAssociateMeal").hide();
 
                     var name = $(this).text();
-                                        
-                    getMeal(firebaseDb, name).then((value) => {                        
+
+                    getMeal(firebaseDb, name).then((value) => {
                         $("#selectedMealName").text(value.name);
                         $("#ingredientsList").empty();
 
                         $.each(value.ingredients, function (i, item) {
-                            $("#ingredientsList").append(item.amount + " " + item.name + "<br />");
+                            $("#ingredientsList").append("<span>" + item.amount + " " + item.name + "</span><br />");
                         });
                     });
                 });
-            }            
+            }
 
             $("#groceryListNav").click(function () {
                 $("#DisplayWeeks").hide();
@@ -266,17 +376,17 @@
                 decrementAmountClickEvent();
                 toggleGroceryListItem();
 
-                getCategoryOptions(firebaseDb).then((value) => {                     
+                getCategoryOptions(firebaseDb).then((value) => {
                     $.each(value, function (i, item) {
-                        $("#newIndividualItemCategories").append("<option value='" + item.name + "'/>");                            
+                        $("#newIndividualItemCategories").append("<option value='" + item.name + "'/>");
                     });
                 });
 
                 $("#clearCheckedItems").click(function () {
                     $("#groceryList").remove(".groceryListItemChecked");
 
-                    $.each($("#groceryList").children(), function (i, item) {                        
-                        if ($(item).children(".groceryListItem").length === 0) {                            
+                    $.each($("#groceryList").children(), function (i, item) {
+                        if ($(item).children(".groceryListItem").length === 0) {
                             $("." + $(item).attr("class")).remove();
                         }
                     });
@@ -290,48 +400,67 @@
                 $("#DisplayGroceryList").hide();
                 $("#DisplayAddMeal").show();
                 $("#DisplayAssociateMeal").hide();
+
+                getCategoryOptions(firebaseDb).then((value) => {
+                    $.each(value, function (i, item) {
+                        $("#newIngredientCategories").append("<option value='" + item.name + "'/>");
+                    });
+                });
+            });
+
+            $("#addMeal").click(function () {
+                $("#addMealNav").click();
             });
 
             $("#addAdditionalIngredient").click(function () {
                 $("#newIngredientList").append('<div id="newIngredientDiv' + newMealIngredientCount + '" class="newIngredient"> ' +
-                    '<input type="text" id="newIngredientAmount' + newMealIngredientCount + '" class="newIngredientAmount" name="newIngredientAmount' + newMealIngredientCount + '" placeholder="Amount" required> ' +
+                    '<input type="text" id="newIngredientAmount' + newMealIngredientCount + '" class="newIngredientAmount" name="newIngredientAmount' + newMealIngredientCount + '" placeholder="Ingredient Amount" required> ' +
                     '<input type="text" id="newIngredientName' + newMealIngredientCount + '" class="newIngredientName" name="newIngredientName' + newMealIngredientCount + '" placeholder="Ingredient Name" required> ' +
-                    '<input type="text" id="newIngredientCategoryInput' + newMealIngredientCount + '" class="newIngredientCategory" list="newIngredientCategories' + newMealIngredientCount + '" name = "newIngredientCategoryInput' + newMealIngredientCount + '" placeholder = "Category" required > ' +
+                    '<input type="text" id="newIngredientCategoryInput' + newMealIngredientCount + '" class="newIngredientCategoryInput" list="newIngredientCategories' + newMealIngredientCount + '" name = "newIngredientCategoryInput' + newMealIngredientCount + '" placeholder = "Ingredient Category" required > ' +
                     '<datalist id="newIngredientCategories' + newMealIngredientCount + '"></datalist>' +
-                    '<button id="newIngredientRemove' + newMealIngredientCount + '">Remove</button>' +
+                    '<button id="newIngredientRemove' + newMealIngredientCount + '" class="newIngredientRemove">Remove</button>' +
                     '</div>');
 
-               
+                $("#newIngredientAmount" + newMealIngredientCount).focus();
 
-                $("#newIngredientRemove" + newMealIngredientCount).click(function () {
-                    var row = $(this).attr('id').substring(19);
-                    $("#newIngredientDiv" + row).remove();
+                getCategoryOptions(firebaseDb).then((value) => {
+                    $.each(value, function (i, item) {                        
+                        $("#newIngredientCategories" + newMealIngredientCount).append("<option value='" + item.name + "'/>");
+                    });
+
+                    $("#newIngredientRemove" + newMealIngredientCount).click(function () {
+                        var row = $(this).attr('id').substring(19);
+                        $("#newIngredientDiv" + row).remove();
+                    });
+
+                    newMealIngredientCount++;
                 });
-
-                newMealIngredientCount++;
             });
-            
-            $("#addNewMeal").click(function () {                
-                var mealJson = {};
-                var mealIngredients = [];
 
-                mealJson.ingredients = mealIngredients;
-                mealJson.name = $("#newMealName").val();
+            $("#addNewMeal").click(function () {
+                getCategoryOptions(firebaseDb).then((value) => {
+                    var mealJson = {};
+                    var mealIngredients = [];
 
-                $.each($(".newIngredient"), function (i, item) {                    
-                    var ingredientJson = {
-                        amount: $(item).children(".newIngredientAmount").val(),
-                        name: $(item).children(".newIngredientName").val(),
-                        category: $(item).children(".newIngredientCategory").val()                        
-                    };
-                    mealJson.ingredients.push(ingredientJson);
+                    mealJson.ingredients = mealIngredients;
+                    mealJson.name = $("#newMealName").val();
 
-                    var category = ingredientJson.category;
-                    getCategoryOptions(firebaseDb).then((value) => {                        
+                    console.log($(".newIngredient"));
+                    $.each($(".newIngredient"), function (i, item) {
+                        var ingredientJson = {
+                            amount: $(item).children(".newIngredientAmount").val(),
+                            name: $(item).children(".newIngredientName").val(),
+                            category: $(item).children(".newIngredientCategoryInput").val()
+                        };
+                        console.log("category: " + $(item).children(".newIngredientCategoryInput").val());
+                        mealJson.ingredients.push(ingredientJson);
+
+                        var category = ingredientJson.category;
+
                         var foundCategory = false;
 
-                        $.each(value, function (i, item) {
-                            if (item.name === category)
+                        $.each(value, function (j, existingCategory) {
+                            if (nameMatch(existingCategory.name, category))
                                 foundCategory = true;
                         });
 
@@ -339,9 +468,18 @@
                             addCategoryOption(firebaseDb, category);
                         }
                     });
-                });
 
-                addMeal(firebaseDb, mealJson);
+                    console.log(mealJson);
+                    addMeal(firebaseDb, mealJson).then((value) => {
+                        alert("New Meal " + $("#newMealName").val() + " Added!");
+
+                        $(".newIngredientRemove").click();
+                        $(".newIngredientAmount").val("");
+                        $(".newIngredientName").val("");
+                        $(".newIngredientCategoryInput").val("");
+                        $("#newMealName").val("");
+                    });;
+                });
             });
 
             $("#week1Toggle").click(function () {
@@ -438,13 +576,37 @@
                 var weeklyMeals = [];
 
                 weeklyMealsJson.weeklyMeals = weeklyMeals;
-                weeklyMealsJson.weeklyMeals.push({ day: "Week1Monday", meals: $("#week1MondayMeal").text()});
+                weeklyMealsJson.weeklyMeals.push({ day: "Week1Monday", meals: $("#week1MondayMeal").text() });
                 weeklyMealsJson.weeklyMeals.push({ day: "Week1Tuesday", meals: $("#week1TuesdayMeal").text() });
                 weeklyMealsJson.weeklyMeals.push({ day: "Week1Wednesday", meals: $("#week1WednesdayMeal").text() });
                 weeklyMealsJson.weeklyMeals.push({ day: "Week1Thursday", meals: $("#week1ThursdayMeal").text() });
                 weeklyMealsJson.weeklyMeals.push({ day: "Week1Friday", meals: $("#week1FridayMeal").text() });
                 weeklyMealsJson.weeklyMeals.push({ day: "Week1Saturday", meals: $("#week1SaturdayMeal").text() });
                 weeklyMealsJson.weeklyMeals.push({ day: "Week1Sunday", meals: $("#week1SundayMeal").text() });
+
+                weeklyMealsJson.weeklyMeals.push({ day: "Week2Monday", meals: $("#week2MondayMeal").text() });
+                weeklyMealsJson.weeklyMeals.push({ day: "Week2Tuesday", meals: $("#week2TuesdayMeal").text() });
+                weeklyMealsJson.weeklyMeals.push({ day: "Week2Wednesday", meals: $("#week2WednesdayMeal").text() });
+                weeklyMealsJson.weeklyMeals.push({ day: "Week2Thursday", meals: $("#week2ThursdayMeal").text() });
+                weeklyMealsJson.weeklyMeals.push({ day: "Week2Friday", meals: $("#week2FridayMeal").text() });
+                weeklyMealsJson.weeklyMeals.push({ day: "Week2Saturday", meals: $("#week2SaturdayMeal").text() });
+                weeklyMealsJson.weeklyMeals.push({ day: "Week2Sunday", meals: $("#week2SundayMeal").text() });
+
+                weeklyMealsJson.weeklyMeals.push({ day: "Week3Monday", meals: $("#week3MondayMeal").text() });
+                weeklyMealsJson.weeklyMeals.push({ day: "Week3Tuesday", meals: $("#week3TuesdayMeal").text() });
+                weeklyMealsJson.weeklyMeals.push({ day: "Week3Wednesday", meals: $("#week3WednesdayMeal").text() });
+                weeklyMealsJson.weeklyMeals.push({ day: "Week3Thursday", meals: $("#week3ThursdayMeal").text() });
+                weeklyMealsJson.weeklyMeals.push({ day: "Week3Friday", meals: $("#week3FridayMeal").text() });
+                weeklyMealsJson.weeklyMeals.push({ day: "Week3Saturday", meals: $("#week3SaturdayMeal").text() });
+                weeklyMealsJson.weeklyMeals.push({ day: "Week3Sunday", meals: $("#week3SundayMeal").text() });
+
+                weeklyMealsJson.weeklyMeals.push({ day: "Week4Monday", meals: $("#week4MondayMeal").text() });
+                weeklyMealsJson.weeklyMeals.push({ day: "Week4Tuesday", meals: $("#week4TuesdayMeal").text() });
+                weeklyMealsJson.weeklyMeals.push({ day: "Week4Wednesday", meals: $("#week4WednesdayMeal").text() });
+                weeklyMealsJson.weeklyMeals.push({ day: "Week4Thursday", meals: $("#week4ThursdayMeal").text() });
+                weeklyMealsJson.weeklyMeals.push({ day: "Week4Friday", meals: $("#week4FridayMeal").text() });
+                weeklyMealsJson.weeklyMeals.push({ day: "Week4Saturday", meals: $("#week4SaturdayMeal").text() });
+                weeklyMealsJson.weeklyMeals.push({ day: "Week4Sunday", meals: $("#week4SundayMeal").text() });
 
                 updateDbWeeklyMeals(firebaseDb, weeklyMealsJson);
             }
@@ -454,7 +616,7 @@
                 UpdateWeeklyMeals();
             });
 
-            $("#generateFromMeals").click(function () {   
+            $("#generateFromMeals").click(function () {
                 if (confirm("Do you want to generate ingredients from meal list?")) {
                     var allMealItemNames = "";
 
@@ -490,9 +652,9 @@
             });
 
             $("#addIndividualItem").click(function () {
-                if ($("#newIndividualItemAmount").val() !== "" && $("newIndividualItemName") !== "") {                    
-                    var newItem = { amount: $("#newIndividualItemAmount").val(), name: $("#newIndividualItemName").val(), category: $("#newIndividualItemCategoryInput").val() }; 
-                    addIngredientToGroceryList(newItem);     
+                if ($("#newIndividualItemAmount").val() !== "" && $("newIndividualItemName") !== "") {
+                    var newItem = { amount: $("#newIndividualItemAmount").val(), name: $("#newIndividualItemName").val(), category: $("#newIndividualItemCategoryInput").val() };
+                    addIngredientToGroceryList(newItem);
 
                     var category = $("#newIndividualItemCategoryInput").val();
 
@@ -509,7 +671,7 @@
                         var foundCategory = false;
 
                         $.each(value, function (i, item) {
-                            if (item.name === category)
+                            if (nameMatch(item.name, category))
                                 foundCategory = true;
                         });
 
@@ -522,12 +684,22 @@
 
             function addIngredientToGroceryList(ingredient) {
                 var itemFound = false;
-                $.each($(".groceryListItemName"), function (i, item) {                    
+                $.each($(".groceryListItemName"), function (i, item) {
                     if (itemFound === false && nameMatch($(item).text(), ingredient.name)) {
                         if ($(item).siblings(".groceryListItemAmount").length > 0 && ingredient.amount !== "" && ingredient.amount !== undefined) {
-                            var currentAmount = $(item).siblings(".groceryListItemAmount").text().match(/\d+/)[0];
-                            currentAmount = +currentAmount + +ingredient.amount.match(/\d+/)[0];
-                            $(item).siblings(".groceryListItemAmount").text(currentAmount + " " + ingredient.amount.replace(/[0-9]/g, ''));
+                            var currentAmount = $(item).siblings(".groceryListItemAmount").text().match(/\d+[\,\.\\\/]?(\d+)?/)[0];
+                            if (currentAmount.includes("/")) {
+                                var split = currentAmount.split('/');
+                                currentAmount = parseInt(split[0], 10) / parseInt(split[1], 10);
+                            }
+                            var ingredientAmount = ingredient.amount.match(/\d+[\,\.\\\/]?(\d+)?/)[0];
+                            if (ingredientAmount.includes("/")) {
+                                var split2 = ingredientAmount.split('/');
+                                ingredientAmount = parseInt(split2[0], 10) / parseInt(split2[1], 10);
+                            }
+
+                            currentAmount = +currentAmount + +ingredientAmount;
+                            $(item).siblings(".groceryListItemAmount").text(currentAmount + " " + ingredient.amount.replace(/\d+[\,\.\\\/]?(\d+)?/, ''));
                             $(item).text(ingredient.name);
                             itemFound = true;
                         }
@@ -535,27 +707,29 @@
                 });
 
                 if (itemFound === false) {
-                    if (ingredient.category === "" || ingredient.category === undefined) {
+                    var refinedCategory = ingredient.category.replace(/\s/g, '').toLowerCase();
+
+                    if (refinedCategory === "" || refinedCategory === undefined) {
                         var categoryDiv = $("#groceryList").children(".uncategorized");
 
                         if (categoryDiv != null && categoryDiv.length > 0) {
                             $(categoryDiv).append("<span class='groceryListItem'><input class='groceryListCheckbox' type='checkbox'><span class='groceryListItemAmount'>" + ingredient.amount + "</span> <span class='groceryListItemName'>" + ingredient.name + "</span><span class='planningModeButtons'><button class='increment'>+</button> <button class='decrement'>-</button></span><br /></span>");
                         }
                         else {
-                            $("#groceryList").append("<div class='uncategorized'>" +
+                            $("#groceryList").append("<div class='uncategorized categoryDiv'>" +
                                 "<strong>UNCATEGORIZED</strong><br />" +
                                 "<span class='groceryListItem'><input class='groceryListCheckbox' type='checkbox'><span class='groceryListItemAmount'>" + ingredient.amount + "</span> <span class='groceryListItemName'>" + ingredient.name + "</span><span class='planningModeButtons'><button class='increment'>+</button> <button class='decrement'>-</button></span><br /></span>" +
                                 "</div>");
                         }
                     }
                     else {
-                        var categoryDiv = $("#groceryList").children("." + ingredient.category + "Category");
+                        var categoryDiv = $("#groceryList").children("." + refinedCategory + "Category");
 
                         if (categoryDiv != null && categoryDiv.length > 0) {
                             $(categoryDiv).append("<span class='groceryListItem'><input class='groceryListCheckbox' type='checkbox'><span class='groceryListItemAmount'>" + ingredient.amount + "</span> <span class='groceryListItemName'>" + ingredient.name + "</span><span class='planningModeButtons'><button class='increment'>+</button> <button class='decrement'>-</button></span><br /></span>");
                         }
                         else {
-                            $("#groceryList").prepend("<div class='" + ingredient.category + "Category'>" +
+                            $("#groceryList").prepend("<div class='" + refinedCategory + "Category categoryDiv'>" +
                                 "<strong>" + ingredient.category.toUpperCase() + "</strong><br />" +
                                 "<span class='groceryListItem'><input class='groceryListCheckbox' type='checkbox'><span class='groceryListItemAmount'>" + ingredient.amount + "</span> <span class='groceryListItemName'>" + ingredient.name + "</span><span class='planningModeButtons'><button class='increment'>+</button> <button class='decrement'>-</button></span><br /></span>" +
                                 "</div>");
@@ -563,7 +737,7 @@
                     }
                 }
 
-                toggleGroceryListItem();  
+                toggleGroceryListItem();
                 incrementAmountClickEvent();
                 decrementAmountClickEvent();
             }
@@ -590,9 +764,14 @@
             function incrementAmountClickEvent() {
                 $(".increment").click(function () {
                     if ($(this).parent().siblings(".groceryListItemAmount").length > 0) {
-                        var currentAmount = $(this).parent().siblings(".groceryListItemAmount").text().match(/\d+/)[0];
+                        var currentAmount = $(this).parent().siblings(".groceryListItemAmount").text().match(/\d+[\,\.\\\/]?(\d+)?/)[0];
+                        if (currentAmount.includes("/")) {
+                            var split = currentAmount.split('/');
+                            currentAmount = parseInt(split[0], 10) / parseInt(split[1], 10);                            
+                        }
                         currentAmount = +currentAmount + 1;
-                        $(this).parent().siblings(".groceryListItemAmount").text(currentAmount + " " + $(this).parent().siblings(".groceryListItemAmount").text().replace(/[0-9]/g, ''));
+                        
+                        $(this).parent().siblings(".groceryListItemAmount").text(currentAmount + " " + $(this).parent().siblings(".groceryListItemAmount").text().replace(/\d+[\,\.\\\/]?(\d+)?/, ''));
 
                         var groceryListHtml = $("#groceryList").html();
                         var groceriesJson = { name: "groceryList", groceryListHtml: groceryListHtml };
@@ -604,11 +783,19 @@
             function decrementAmountClickEvent() {
                 $(".decrement").click(function () {
                     if ($(this).parent().siblings(".groceryListItemAmount").length > 0) {
-                        var currentAmount = $(this).parent().siblings(".groceryListItemAmount").text().match(/\d+/)[0];
+                        var currentAmount = $(this).parent().siblings(".groceryListItemAmount").text().match(/\d+[\,\.\\\/]?(\d+)?/)[0];
+                        if (currentAmount.includes("/")) {
+                            var split = currentAmount.split('/');
+                            currentAmount = parseInt(split[0], 10) / parseInt(split[1], 10);
+                        }
+
                         currentAmount = +currentAmount - 1;
 
+                        if (currentAmount < 0)
+                            currentAmount = 0;
+
                         if (currentAmount >= 0) {
-                            $(this).parent().siblings(".groceryListItemAmount").text(currentAmount + " " + $(this).parent().siblings(".groceryListItemAmount").text().replace(/[0-9]/g, ''));
+                            $(this).parent().siblings(".groceryListItemAmount").text(currentAmount + " " + $(this).parent().siblings(".groceryListItemAmount").text().replace(/\d+[\,\.\\\/]?(\d+)?/, ''));
 
                             var groceryListHtml = $("#groceryList").html();
                             var groceriesJson = { name: "groceryList", groceryListHtml: groceryListHtml };
@@ -618,11 +805,68 @@
                 });
             }
 
+            $("#editMeal").click(function () {
+                var name = $("#selectedMealName").text();
+                $("#addMealNav").click();                
 
+                $("#newMealName").val(name);
+
+                getMeal(firebaseDb, name).then((value) => {
+
+                    var numberOfIngredients = Object.keys(value.ingredients).length;
+                    var localIngredientCount = 0;
+                    if (numberOfIngredients > 0) {
+                        $("#newIngredientList").empty();
+
+                        $("#newIngredientList").append('<div id="newIngredientDiv" class="newIngredient"> ' +
+                            '<input type="text" id="newIngredientAmount" class="newIngredientAmount" name="newIngredientAmount" placeholder="Ingredient Amount" required> ' +
+                            '<input type="text" id="newIngredientName" class="newIngredientName" name="newIngredientName" placeholder="Ingredient Name" required> ' +
+                            '<input type="text" id="newIngredientCategoryInput" class="newIngredientCategoryInput" list="newIngredientCategories" name = "newIngredientCategoryInput" placeholder = "Ingredient Category" required > ' +
+                            '<datalist id="newIngredientCategories"></datalist>' +
+                            '<button id="newIngredientRemove" class="newIngredientRemove">Remove</button>' +
+                            '</div>');
+
+                        $("#newIngredientAmount").val(value.ingredients[0].amount);
+                        $("#newIngredientName").val(value.ingredients[0].name);                        
+                        $("#newIngredientCategoryInput").val(value.ingredients[0].category);
+
+                        $.each(value.ingredients, function (i, item) {                            
+                            if (i > 0) {                                                                
+                                getCategoryOptions(firebaseDb).then((value) => {
+                                    localIngredientCount = i - 1;
+
+                                    $("#newIngredientList").append('<div id="newIngredientDiv' + localIngredientCount + '" class="newIngredient"> ' +
+                                        '<input type="text" id="newIngredientAmount' + localIngredientCount + '" class="newIngredientAmount" name="newIngredientAmount' + localIngredientCount + '" placeholder="Ingredient Amount" required> ' +
+                                        '<input type="text" id="newIngredientName' + localIngredientCount + '" class="newIngredientName" name="newIngredientName' + localIngredientCount + '" placeholder="Ingredient Name" required> ' +
+                                        '<input type="text" id="newIngredientCategoryInput' + localIngredientCount + '" class="newIngredientCategoryInput" list="newIngredientCategories' + localIngredientCount + '" name = "newIngredientCategoryInput' + localIngredientCount + '" placeholder = "Ingredient Category" required > ' +
+                                        '<datalist id="newIngredientCategories' + localIngredientCount + '"></datalist>' +
+                                        '<button id="newIngredientRemove' + localIngredientCount + '" class="newIngredientRemove">Remove</button>' +
+                                        '</div>');
+
+                                    $("#newIngredientAmount" + localIngredientCount).val(item.amount);
+                                    $("#newIngredientName" + localIngredientCount).val(item.name);
+                                    $("#newIngredientCategoryInput" + localIngredientCount).val(item.category);
+
+                                    $.each(value, function (j, categoryItem) {
+                                        $("#newIngredientCategories" + localIngredientCount).append("<option value='" + categoryItem.name + "'/>");
+                                    });
+
+                                    $("#newIngredientRemove" + localIngredientCount).click(function () {
+                                        var row = $(this).attr('id').substring(19);
+                                        $("#newIngredientDiv" + row).remove();
+                                    });
+
+                                    newMealIngredientCount = localIngredientCount;
+                                });
+                            }
+                        });
+                    }
+                });
+            });
 
 
             //document start ends here
-        });        
+        });
     </script>
 </head>
 
@@ -642,28 +886,79 @@
             <div><h2>WEEK 1</h2> <button id="week1Toggle">Expand</button></div>
             <div id="week1Meals" class="hide">
                 <div id="week1Monday"><strong>Monday:</strong> <div class="dailyMeal" id="week1MondayMeal"></div> <button class="addMealToDay">Add</button> <button class="clearMealsForDay">Clear</button> </div>
+                <hr class="mealDivider" />
                 <div id="week1Tuesday"><strong>Tuesday:</strong> <div class="dailyMeal" id="week1TuesdayMeal"></div> <button class="addMealToDay">Add</button> <button class="clearMealsForDay">Clear</button> </div>
+                <hr class="mealDivider" />
                 <div id="week1Wednesday"><strong>Wednesday:</strong> <div class="dailyMeal" id="week1WednesdayMeal"></div> <button class="addMealToDay">Add</button> <button class="clearMealsForDay">Clear</button> </div>
+                <hr class="mealDivider" />
                 <div id="week1Thursday"><strong>Thursday:</strong> <div class="dailyMeal" id="week1ThursdayMeal"></div> <button class="addMealToDay">Add</button> <button class="clearMealsForDay">Clear</button> </div>
+                <hr class="mealDivider" />
                 <div id="week1Friday"><strong>Friday:</strong> <div class="dailyMeal" id="week1FridayMeal"></div> <button class="addMealToDay">Add</button> <button class="clearMealsForDay">Clear</button> </div>
+                <hr class="mealDivider" />
                 <div id="week1Saturday"><strong>Saturday:</strong> <div class="dailyMeal" id="week1SaturdayMeal"></div> <button class="addMealToDay">Add</button> <button class="clearMealsForDay">Clear</button> </div>
+                <hr class="mealDivider" />
                 <div id="week1Sunday"><strong>Sunday:</strong> <div class="dailyMeal" id="week1SundayMeal"></div> <button class="addMealToDay">Add</button> <button class="clearMealsForDay">Clear</button> </div>
             </div>
         </div>
-        <div id="week2Meals">
+        <div id="week2">
             <h2>WEEK 2</h2> <button id="week2Toggle">Expand</button>
+            <div id="week2Meals" class="hide">
+                <div id="week2Monday"><strong>Monday:</strong> <div class="dailyMeal" id="week2MondayMeal"></div> <button class="addMealToDay">Add</button> <button class="clearMealsForDay">Clear</button> </div>
+                <hr class="mealDivider" />
+                <div id="week2Tuesday"><strong>Tuesday:</strong> <div class="dailyMeal" id="week2TuesdayMeal"></div> <button class="addMealToDay">Add</button> <button class="clearMealsForDay">Clear</button> </div>
+                <hr class="mealDivider" />
+                <div id="week2Wednesday"><strong>Wednesday:</strong> <div class="dailyMeal" id="week2WednesdayMeal"></div> <button class="addMealToDay">Add</button> <button class="clearMealsForDay">Clear</button> </div>
+                <hr class="mealDivider" />
+                <div id="week2Thursday"><strong>Thursday:</strong> <div class="dailyMeal" id="week2ThursdayMeal"></div> <button class="addMealToDay">Add</button> <button class="clearMealsForDay">Clear</button> </div>
+                <hr class="mealDivider" />
+                <div id="week2Friday"><strong>Friday:</strong> <div class="dailyMeal" id="week2FridayMeal"></div> <button class="addMealToDay">Add</button> <button class="clearMealsForDay">Clear</button> </div>
+                <hr class="mealDivider" />
+                <div id="week2Saturday"><strong>Saturday:</strong> <div class="dailyMeal" id="week2SaturdayMeal"></div> <button class="addMealToDay">Add</button> <button class="clearMealsForDay">Clear</button> </div>
+                <hr class="mealDivider" />
+                <div id="week2Sunday"><strong>Sunday:</strong> <div class="dailyMeal" id="week2SundayMeal"></div> <button class="addMealToDay">Add</button> <button class="clearMealsForDay">Clear</button> </div>
+            </div>
         </div>
-        <div id="week3Meals">
+        <div id="week3">
             <h2>WEEK 3</h2> <button id="week3Toggle">Expand</button>
+            <div id="week3Meals" class="hide">
+                <div id="week3Monday"><strong>Monday:</strong> <div class="dailyMeal" id="week3MondayMeal"></div> <button class="addMealToDay">Add</button> <button class="clearMealsForDay">Clear</button> </div>
+                <hr class="mealDivider" />
+                <div id="week3Tuesday"><strong>Tuesday:</strong> <div class="dailyMeal" id="week3TuesdayMeal"></div> <button class="addMealToDay">Add</button> <button class="clearMealsForDay">Clear</button> </div>
+                <hr class="mealDivider" />
+                <div id="week3Wednesday"><strong>Wednesday:</strong> <div class="dailyMeal" id="week3WednesdayMeal"></div> <button class="addMealToDay">Add</button> <button class="clearMealsForDay">Clear</button> </div>
+                <hr class="mealDivider" />
+                <div id="week3Thursday"><strong>Thursday:</strong> <div class="dailyMeal" id="week3ThursdayMeal"></div> <button class="addMealToDay">Add</button> <button class="clearMealsForDay">Clear</button> </div>
+                <hr class="mealDivider" />
+                <div id="week3Friday"><strong>Friday:</strong> <div class="dailyMeal" id="week3FridayMeal"></div> <button class="addMealToDay">Add</button> <button class="clearMealsForDay">Clear</button> </div>
+                <hr class="mealDivider" />
+                <div id="week3Saturday"><strong>Saturday:</strong> <div class="dailyMeal" id="week3SaturdayMeal"></div> <button class="addMealToDay">Add</button> <button class="clearMealsForDay">Clear</button> </div>
+                <hr class="mealDivider" />
+                <div id="week3Sunday"><strong>Sunday:</strong> <div class="dailyMeal" id="week3SundayMeal"></div> <button class="addMealToDay">Add</button> <button class="clearMealsForDay">Clear</button> </div>
+            </div>
         </div>
-        <div id="week4Meals">
+        <div id="week4">
             <h2>WEEK 4</h2> <button id="week4Toggle">Expand</button>
+            <div id="week4Meals" class="hide">
+                <div id="week4Monday"><strong>Monday:</strong> <div class="dailyMeal" id="week4MondayMeal"></div> <button class="addMealToDay">Add</button> <button class="clearMealsForDay">Clear</button> </div>
+                <hr class="mealDivider" />
+                <div id="week4Tuesday"><strong>Tuesday:</strong> <div class="dailyMeal" id="week4TuesdayMeal"></div> <button class="addMealToDay">Add</button> <button class="clearMealsForDay">Clear</button> </div>
+                <hr class="mealDivider" />
+                <div id="week4Wednesday"><strong>Wednesday:</strong> <div class="dailyMeal" id="week4WednesdayMeal"></div> <button class="addMealToDay">Add</button> <button class="clearMealsForDay">Clear</button> </div>
+                <hr class="mealDivider" />
+                <div id="week4Thursday"><strong>Thursday:</strong> <div class="dailyMeal" id="week4ThursdayMeal"></div> <button class="addMealToDay">Add</button> <button class="clearMealsForDay">Clear</button> </div>
+                <hr class="mealDivider" />
+                <div id="week4Friday"><strong>Friday:</strong> <div class="dailyMeal" id="week4FridayMeal"></div> <button class="addMealToDay">Add</button> <button class="clearMealsForDay">Clear</button> </div>
+                <hr class="mealDivider" />
+                <div id="week4Saturday"><strong>Saturday:</strong> <div class="dailyMeal" id="week4SaturdayMeal"></div> <button class="addMealToDay">Add</button> <button class="clearMealsForDay">Clear</button> </div>
+                <hr class="mealDivider" />
+                <div id="week4Sunday"><strong>Sunday:</strong> <div class="dailyMeal" id="week4SundayMeal"></div> <button class="addMealToDay">Add</button> <button class="clearMealsForDay">Clear</button> </div>
+            </div>
         </div>
     </div>
     <div id="DisplayGroceryList" class="hide">
         <button id="togglePlanningMode">Planning Mode</button>
-        <br/>
-        <br/>
+        <br />
+        <br />
         <div id="groceryList">
 
         </div>
@@ -675,11 +970,10 @@
         <br />
         <br />
         <div class="newIndividualItem">
-            <input type="text" id="newIndividualItemAmount" class="newIndividualItemAmount" name="newIndividualItemAmount" placeholder="Amount" required>
-            <input type="text" id="newIndividualItemName" class="newIndividualItemName" name="newIndividualItemName" placeholder="Ingredient Name" required>            
-            <input type="text" id="newIndividualItemCategoryInput" list="newIndividualItemCategories" name="newIndividualItemCategoryInput" />
+            <input type="text" id="newIndividualItemAmount" class="newIndividualItemAmount" name="newIndividualItemAmount" placeholder="Ingredient Amount" required>
+            <input type="text" id="newIndividualItemName" class="newIndividualItemName" name="newIndividualItemName" placeholder="Ingredient Name" required>
+            <input type="text" id="newIndividualItemCategoryInput" list="newIndividualItemCategories" placeholder="Ingredient Category" name="newIndividualItemCategoryInput" />
             <datalist id="newIndividualItemCategories">
-                
             </datalist>
         </div>
         <button id="addIndividualItem">Add Item</button>
@@ -699,19 +993,20 @@
         <div id="ingredientsList">
 
         </div>
+        <button id="editMeal">Edit Meal</button>
     </div>
     <div id="DisplayAddMeal" class="hide">
         <h1>Add Meal</h1>
         <strong><label for="newMealName">Meal Name:</label></strong>
-        <input type="text" id="newMealName" name="newMealName" required>
+        <input type="text" id="newMealName" name="newMealName" placeholder="Meal Name" required>
         <br />
         <br />
         <strong>Ingredients</strong>
         <div id="newIngredientList">
             <div class="newIngredient">
-                <input type="text" id="newIngredientAmount" class="newIngredientAmount" name="newIngredientAmount" placeholder="Amount" required>
+                <input type="text" id="newIngredientAmount" class="newIngredientAmount" name="newIngredientAmount" placeholder="Ingredient Amount" required>
                 <input type="text" id="newIngredientName" class="newIngredientName" name="newIngredientName" placeholder="Ingredient Name" required>
-                <input type="text" id="newIngredientCategoryInput" class="newIngredientCategoryInput" list="newIngredientCategories" name="newIngredientCategoryInput" />
+                <input type="text" id="newIngredientCategoryInput" class="newIngredientCategoryInput" placeholder="Ingredient Category" list="newIngredientCategories" name="newIngredientCategoryInput" />
                 <datalist id="newIngredientCategories">
                 </datalist>
             </div>

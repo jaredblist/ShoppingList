@@ -444,8 +444,7 @@
 
                     mealJson.ingredients = mealIngredients;
                     mealJson.name = $("#newMealName").val();
-
-                    console.log($(".newIngredient"));
+                    
                     $.each($(".newIngredient"), function (i, item) {
                         var ingredientJson = {
                             amount: $(item).children(".newIngredientAmount").val(),
@@ -465,11 +464,11 @@
                         });
 
                         if (!foundCategory) {
+                            console.log("Adding Category: " + category);
                             addCategoryOption(firebaseDb, category);
                         }
                     });
 
-                    console.log(mealJson);
                     addMeal(firebaseDb, mealJson).then((value) => {
                         alert("New Meal " + $("#newMealName").val() + " Added!");
 
@@ -876,7 +875,7 @@
 
 <body>
     <div>
-        <span id="weeklyPlanningNav">Weekly Planning</span> | <span id="groceryListNav">View Grocery List</span> | <span id="mealNav">View Meals</span> | <span id="addMealNav">Add Meal</span>
+        <span id="weeklyPlanningNav">Weekly Planning</span> | <span id="groceryListNav">Grocery List</span> | <span id="mealNav">Meals</span> | <span id="addMealNav">Add Meal</span>
     </div>
     <hr />
 
